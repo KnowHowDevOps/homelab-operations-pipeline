@@ -1,0 +1,23 @@
+{
+    "name": "know-how-dev-ops-homelab-operations-pipeline",
+    "version": "23.0.0",
+    "description": "Provide an optional Git commit hooks.",
+    "private": true,
+    "scripts": {
+        "postinstall": "husky install"
+    },
+    "author": "Dima Denysenko",
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "husky": "8.0.3",
+        "prettier": "3.0.3",
+        "prettier-plugin-java": "2.3.1",
+        "prettier-plugin-packagejson": "2.4.6"
+    },
+    "engines": {
+        "node": ">=16.17.0"
+    },
+    "cacheDirectories": [
+        "node_modules"
+    ]
+}
