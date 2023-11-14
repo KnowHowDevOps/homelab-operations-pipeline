@@ -1,0 +1,28 @@
+kind : pipeline
+name : CI
+type : docker
+
+trigger :
+  event :
+    - push
+    - tag
+
+volumes :
+  - name : m2cache
+    host :
+      path : /app/.m2
+steps :
+
+  - name : build
+    image : busybox
+    pull : if-not-exists
+    volumes :
+      - name : m2cache
+        path : /root/.m2
+    environment :
+      DEPLOYER_USERNAME :
+        from_secret : DEPLOYER_USERNAME
+      DEPLOYER_PASSWORD :
+        from_secret : DEPLOYER_PASSWORD
+    commands :
+      - printenv
