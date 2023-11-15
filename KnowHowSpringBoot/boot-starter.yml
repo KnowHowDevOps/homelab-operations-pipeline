@@ -154,7 +154,7 @@ steps :
     image : plugins/github-release
     settings :
       api_key :
-        from_secret : GITHUB_API_KEY
+        from_secret : GITHUB_API_ACCESS_TOKEN
       title : boot-starter-restful ${DRONE_TAG}
       note : "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
       files : ./boot-starter-restful/target/*.jar
@@ -209,7 +209,7 @@ steps :
     image : plugins/github-release
     settings :
       api_key :
-        from_secret : GITHUB_API_KEY
+        from_secret : GITHUB_API_ACCESS_TOKEN
       title : boot-starter-kafka ${DRONE_TAG}
       note : "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
       files : ./boot-starter-kafka/target/*.jar
@@ -264,7 +264,7 @@ steps :
     image : plugins/github-release
     settings :
       api_key :
-        from_secret : GITHUB_API_KEY
+        from_secret : GITHUB_API_ACCESS_TOKEN
       title : boot-starter-cache ${DRONE_TAG}
       note : "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
       files : ./boot-starter-cache/target/*.jar
@@ -319,7 +319,7 @@ steps :
     image : plugins/github-release
     settings :
       api_key :
-        from_secret : GITHUB_API_KEY
+        from_secret : GITHUB_API_ACCESS_TOKEN
       title : boot-starter-amqp ${DRONE_TAG}
       note : "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
       files : ./boot-starter-amqp/target/*.jar
@@ -374,7 +374,7 @@ steps :
     image : plugins/github-release
     settings :
       api_key :
-        from_secret : GITHUB_API_KEY
+        from_secret : GITHUB_API_ACCESS_TOKEN
       title : boot-starter-observability ${DRONE_TAG}
       note : "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
       files : ./boot-starter-observability/target/*.jar
