@@ -1,30 +1,30 @@
-kind: pipeline
-name: CI
-type: docker
+kind : pipeline
+name : CI
+type : docker
 
-trigger:
-  event:
+trigger :
+  event :
     - push
     - tag
 
-volumes:
-  - name: m2cache
-    host:
-      path: /app/.m2
-steps:
+volumes :
+  - name : m2cache
+    host :
+      path : /app/.m2
+steps :
 
-  - name: build
-    image: know-how.download/svc-builder:openjdk-17.0.2-slim
-    pull: if-not-exists
-    volumes:
-      - name: m2cache
-        path: /root/.m2
-    environment:
-      DEPLOYER_USERNAME:
-        from_secret: DEPLOYER_USERNAME
-      DEPLOYER_PASSWORD:
-        from_secret: DEPLOYER_PASSWORD
-    commands:
+  - name : build
+    image : know-how.sbs/svc-builder:openjdk-17.0.2-slim
+    pull : if-not-exists
+    volumes :
+      - name : m2cache
+        path : /root/.m2
+    environment :
+      DEPLOYER_USERNAME :
+        from_secret : DEPLOYER_USERNAME
+      DEPLOYER_PASSWORD :
+        from_secret : DEPLOYER_PASSWORD
+    commands :
       - javac -version
       - node --version
       - npm --version
@@ -32,8 +32,8 @@ steps:
       - npm install
       - ./gradlew test jacocoTestReport --warning-mode all
       - ./gradlew -Pprod clean bootJar
-    when:
-      event:
+    when :
+      event :
         - push
         - tag
 

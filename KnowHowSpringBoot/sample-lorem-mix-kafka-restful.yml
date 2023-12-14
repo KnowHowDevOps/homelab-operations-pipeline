@@ -15,7 +15,7 @@ volumes :
 steps :
 
   - name : code-coverage-gate
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -41,7 +41,7 @@ steps :
   - name : static-analysis-gate
     depends_on :
       - code-coverage-gate
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -97,7 +97,7 @@ services :
     image : docker.io/bitnami/kafka:3.6.0
     environment :
       KAFKA_BROKER_ID : 1
-      KAFKA_ENABLE_KRAFT: "no"
+      KAFKA_ENABLE_KRAFT : "no"
       KAFKA_CFG_LISTENERS : PLAINTEXT://:9092,PLAINTEXT_KAFKA://:9091
       KAFKA_CFG_ADVERTISED_LISTENERS : PLAINTEXT://kafka:9092,PLAINTEXT_KAFKA://kafka:9091
       KAFKA_CFG_ZOOKEEPER_CONNECT : zookeeper:2181
@@ -132,7 +132,7 @@ volumes :
 steps :
 
   - name : publish-snapshot-jar
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -151,7 +151,7 @@ steps :
           - "*.*.x"
 
   - name : publish-release-jar
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -224,7 +224,7 @@ volumes :
 steps :
 
   - name : package-jar
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -235,6 +235,7 @@ steps :
       DEPLOYER_PASSWORD :
         from_secret : DEPLOYER_PASSWORD
     commands :
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/Dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD
 
   - name : build-container-with-feature-for-words-processing
@@ -242,19 +243,19 @@ steps :
       - package-jar
     image : plugins/docker
     settings :
-      dockerfile : .drone/Dockerfile
+      dockerfile : ./Dockerfile
       context : ./words-processing/
       storage_driver : vfs
       username :
         from_secret : DOCKER_USERNAME
       password :
         from_secret : DOCKER_PASSWORD
-      repo : know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/words-processing
+      repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
       registry : know-how.download
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
-        - BUILD_VERSION=${DRONE_COMMIT}
+        - BASE_IMAGE=know-how.sbs/jre:openjdk-21-slim-bookworm
+        - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
     when :
@@ -267,19 +268,19 @@ steps :
       - build-container-with-feature-for-words-processing
     image : plugins/docker
     settings :
-      dockerfile : .drone/Dockerfile
+      dockerfile : ./Dockerfile
       context : ./reports-history/
       storage_driver : vfs
       username :
         from_secret : DOCKER_USERNAME
       password :
         from_secret : DOCKER_PASSWORD
-      repo : know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/reports-history
+      repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
       registry : know-how.download
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
-        - BUILD_VERSION=${DRONE_COMMIT}
+        - BASE_IMAGE=know-how.sbs/jre:openjdk-21-slim-bookworm
+        - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
     when :
@@ -292,19 +293,19 @@ steps :
       - package-jar
     image : plugins/docker
     settings :
-      dockerfile : .drone/Dockerfile
+      dockerfile : ./Dockerfile
       context : ./words-processing/
       storage_driver : vfs
       username :
         from_secret : DOCKER_USERNAME
       password :
         from_secret : DOCKER_PASSWORD
-      repo : know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/words-processing
+      repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
       registry : know-how.download
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
-        - BUILD_VERSION=${DRONE_COMMIT}
+        - BASE_IMAGE=know-how.sbs/jre:openjdk-21-slim-bookworm
+        - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
         - "latest"
@@ -317,19 +318,19 @@ steps :
       - build-container-release-words-processing
     image : plugins/docker
     settings :
-      dockerfile : .drone/Dockerfile
+      dockerfile : ./Dockerfile
       context : ./reports-history/
       storage_driver : vfs
       username :
         from_secret : DOCKER_USERNAME
       password :
         from_secret : DOCKER_PASSWORD
-      repo : know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/reports-history
+      repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
       registry : know-how.download
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
-        - BUILD_VERSION=${DRONE_COMMIT}
+        - BASE_IMAGE=know-how.sbs/jre:openjdk-21-slim-bookworm
+        - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
         - "latest"
@@ -352,7 +353,7 @@ trigger :
 
 steps :
   - name : deploy
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -397,7 +398,7 @@ trigger :
 
 steps :
   - name : rollback
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -422,7 +423,7 @@ trigger :
 
 steps :
   - name : deploy
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -468,7 +469,7 @@ trigger :
 
 steps :
   - name : rollback
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -498,7 +499,7 @@ steps :
 
   - name : create-release-tag
     failure : ignore
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
