@@ -15,7 +15,7 @@ volumes :
 steps :
 
   - name : code-coverage-gate
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -38,7 +38,7 @@ steps :
   - name : static-analysis-gate
     depends_on :
       - code-coverage-gate
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -99,7 +99,7 @@ volumes :
 
 steps :
   - name : publish-snapshot-jar
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -118,7 +118,7 @@ steps :
           - "*.*.x"
 
   - name : publish-release-jar
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -189,7 +189,7 @@ volumes :
 steps :
   - name : create-release-tag
     failure : ignore
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache

@@ -15,7 +15,7 @@ volumes :
 steps :
 
   - name : build boot-starter-restful
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -38,7 +38,7 @@ steps :
       - mvn verify -Dstyle.color=always -Dmaven.javadoc.skip=true org.jacoco:jacoco-maven-plugin:report --batch-mode --file boot-starter-restful/pom.xml -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD
 
   - name : build boot-starter-kafka
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -56,7 +56,7 @@ steps :
       - build boot-starter-restful
 
   - name : build boot-starter-amqp
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -74,7 +74,7 @@ steps :
       - build boot-starter-kafka
 
   - name : build boot-starter-observability
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -92,7 +92,7 @@ steps :
       - build boot-starter-amqp
 
   - name : build boot-starter-cache
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -110,7 +110,7 @@ steps :
       - build boot-starter-observability
 
   - name : publish-snapshot-jar boot-starter-restful
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -132,7 +132,7 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-restful
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -165,7 +165,7 @@ steps :
       - publish-release-jar boot-starter-restful
 
   - name : publish-snapshot-jar boot-starter-kafka
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -187,7 +187,7 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-kafka
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -220,7 +220,7 @@ steps :
       - publish-release-jar boot-starter-kafka
 
   - name : publish-snapshot-jar boot-starter-cache
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -242,7 +242,7 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-cache
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -275,7 +275,7 @@ steps :
       - publish-release-jar boot-starter-cache
 
   - name : publish-snapshot-jar boot-starter-amqp
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -297,7 +297,7 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-amqp
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -330,7 +330,7 @@ steps :
       - publish-release-jar boot-starter-amqp
 
   - name : publish-snapshot-jar boot-starter-observability
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -352,7 +352,7 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-observability
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -424,7 +424,7 @@ volumes :
 steps :
   - name : create-release-tag
     failure : ignore
-    image : know-how.download/svc-builder:openjdk-21-slim-bookworm
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
