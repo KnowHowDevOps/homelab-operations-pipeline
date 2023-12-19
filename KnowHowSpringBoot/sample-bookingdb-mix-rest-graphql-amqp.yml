@@ -15,7 +15,7 @@ volumes :
 steps :
 
   - name : mysql-healthcheck
-    image : mysql:5.7.42
+    image : mysql:5.7.44
     pull : if-not-exists
     commands :
       - while ! mysqladmin ping -h db -u svc_testing -psvc_testing --silent; do sleep 1; done
@@ -84,7 +84,7 @@ steps :
 
 services :
   - name : db
-    image : mysql:5.7.42
+    image : mysql:5.7.44
     environment :
       MYSQL_DATABASE : svc_testing_db
       MYSQL_USER : svc_testing
