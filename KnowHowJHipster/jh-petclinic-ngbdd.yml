@@ -5,7 +5,6 @@ type : docker
 trigger :
   event :
     - push
-    - tag
 
 volumes :
   - name : m2cache
@@ -35,7 +34,6 @@ steps :
     when :
       event :
         - push
-        - tag
 
   - name : notify-slack
     image : plugins/slack

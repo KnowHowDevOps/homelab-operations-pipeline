@@ -5,7 +5,6 @@ type : docker
 trigger :
   event :
     - push
-    - tag
 
 volumes :
   - name : m2cache
@@ -80,7 +79,6 @@ type : docker
 trigger :
   event :
     - push
-    - tag
   ref :
     - refs/heads/dev
     - refs/heads/prerelease*
@@ -177,7 +175,6 @@ type : docker
 trigger :
   event :
     - push
-    - tag
 
 depends_on :
   - ArtifactsPublishing
