@@ -1,0 +1,43 @@
+kind : pipeline
+name : ContinuousIntegration
+type : docker
+
+trigger :
+  event :
+    - push
+  ref :
+    - refs/heads/dev
+
+steps :
+  - name : build
+    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    pull : if-not-exists
+    commands :
+      - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
+      - export GIT_AUTHOR_EMAIL=$${SVC_BUILD_GIT_EMAIL}
+      - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
+      - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
+      - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
+      - git config user.email $${SVC_BUILD_GIT_EMAIL}
+      - pnpm install
+      - pnpm run build
+
+  - name : notify-slack
+    image : plugins/slack
+    settings :
+      webhook :
+        from_secret : SLACK_WEBHOOK
+      channel : dev
+      template : >
+        {{#success build.status}}
+         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
+         {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{else}}
+         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{/success}}
+    when :
+      status :
+        - failure
+        - success
+    depends_on :
+      - build
