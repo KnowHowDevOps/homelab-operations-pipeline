@@ -20,7 +20,29 @@ steps :
       - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
       - git config user.email $${SVC_BUILD_GIT_EMAIL}
       - pnpm install
-      - pnpm run build
+      - pnpm build
+      - pnpm prune --prod
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/Node.dockerfile
+
+  - name : build-container
+    depends_on :
+      - build
+    image : plugins/docker
+    settings :
+      dockerfile : ./Dockerfile
+      context : ./
+      storage_driver : vfs
+      username :
+        from_secret : DOCKER_USERNAME
+      password :
+        from_secret : DOCKER_PASSWORD
+      repo : know-how.download/kvcrm/${DRONE_REPO_NAME}
+      force_tag : true
+      build_args :
+        - BASE_IMAGE=know-how.sbs/node
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags :
+        - ${DRONE_BRANCH}-${CI_BUILD_NUMBER}
 
   - name : notify-slack
     image : plugins/slack
@@ -40,4 +62,4 @@ steps :
         - failure
         - success
     depends_on :
-      - build
+      - build-container
