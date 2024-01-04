@@ -223,7 +223,6 @@ steps :
       password :
         from_secret : DOCKER_PASSWORD
       repo : know-how.download/knowhowspringboot/quickstart-amqp-consuming-hello
-      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.sbs/jre:openjdk-21-slim-bookworm
@@ -248,7 +247,6 @@ steps :
       password :
         from_secret : DOCKER_PASSWORD
       repo : know-how.download/knowhowspringboot/quickstart-amqp-consuming-hello
-      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.sbs/jre:openjdk-21-slim-bookworm
