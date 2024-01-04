@@ -7,6 +7,7 @@ trigger :
     - push
   ref :
     - refs/heads/dev
+    - refs/heads/*-runtime
 
 steps :
   - name : build
@@ -43,6 +44,10 @@ steps :
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH}-${CI_BUILD_NUMBER}
+    when :
+      branch :
+        include :
+          - "*-runtime"
 
   - name : notify-slack
     image : plugins/slack
@@ -61,5 +66,3 @@ steps :
       status :
         - failure
         - success
-    depends_on :
-      - build-container
