@@ -212,7 +212,6 @@ steps :
       password :
         from_secret : DOCKER_PASSWORD
       repo : know-how.download/knowhowjhipster/${DRONE_REPO_NAME}
-      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.sbs/jre:openjdk-17.0.2-slim
@@ -237,7 +236,6 @@ steps :
       password :
         from_secret : DOCKER_PASSWORD
       repo : know-how.download/knowhowjhipster/${DRONE_REPO_NAME}
-      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.sbs/jre:openjdk-17.0.2-slim
