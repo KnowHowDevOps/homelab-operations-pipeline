@@ -50,6 +50,8 @@ steps :
           - "*-runtime"
 
   - name : notify-slack
+    depends_on :
+      - build
     image : plugins/slack
     settings :
       webhook :
