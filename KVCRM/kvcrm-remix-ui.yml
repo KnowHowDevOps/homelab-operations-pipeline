@@ -1,6 +1,6 @@
 kind : pipeline
 name : ContinuousIntegration
-type : kubernetes
+type : docker
 
 trigger :
   event :
