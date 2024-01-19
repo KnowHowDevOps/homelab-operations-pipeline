@@ -7,6 +7,7 @@ trigger :
     - push
   ref :
     - refs/heads/dev
+    - refs/heads/*.*.x
     - refs/heads/*-runtime
 
 steps :
