@@ -20,7 +20,7 @@ steps :
       - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
       - git config user.email $${SVC_BUILD_GIT_EMAIL}
       - pnpm install
-      - lerna publish --yes --no-commit-hooks
+      - lerna publish from-git --yes --no-commit-hooks
 
   - name : notify-slack
     image : plugins/slack
