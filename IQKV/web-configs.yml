@@ -21,7 +21,7 @@ steps :
       - git config user.email $${SVC_BUILD_GIT_EMAIL}
       - pnpm install
       - printenv
-      - lerna publish --yes --no-commit-hooks
+      - lerna publish from-package --yes --no-commit-hooks
 
   - name : notify-slack
     image : plugins/slack
