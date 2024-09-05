@@ -14,7 +14,7 @@ volumes :
 steps :
 
   - name : code-coverage-gate
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -40,7 +40,7 @@ steps :
   - name : static-analysis-gate
     depends_on :
       - code-coverage-gate
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -110,7 +110,7 @@ volumes :
 steps :
 
   - name : publish-snapshot-jar
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -129,7 +129,7 @@ steps :
           - "*.*.x"
 
   - name : publish-release-jar
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -201,7 +201,7 @@ volumes :
 steps :
 
   - name : package-jar
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache
@@ -278,7 +278,7 @@ trigger :
 
 steps :
   - name : deploy
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -323,7 +323,7 @@ trigger :
 
 steps :
   - name : rollback
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -348,7 +348,7 @@ trigger :
 
 steps :
   - name : deploy
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -394,7 +394,7 @@ trigger :
 
 steps :
   - name : rollback
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     environment :
       HELM_CHARTS_REPOSITORY :
@@ -424,7 +424,7 @@ steps :
 
   - name : create-release-tag
     failure : ignore
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     volumes :
       - name : m2cache

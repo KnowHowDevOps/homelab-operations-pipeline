@@ -10,7 +10,7 @@ trigger :
 
 steps :
   - name : publish
-    image : know-how.sbs/svc-builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder:openjdk-21-slim-bookworm
     pull : if-not-exists
     commands :
       - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
