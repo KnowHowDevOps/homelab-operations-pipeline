@@ -14,8 +14,8 @@ volumes :
 steps :
 
   - name : code-coverage-gate
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -38,8 +38,8 @@ steps :
   - name : static-analysis-gate
     depends_on :
       - code-coverage-gate
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -119,7 +119,7 @@ volumes :
 
 steps :
   - name : publish-snapshot-jar
-    image : cicdimage/builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -138,8 +138,8 @@ steps :
           - "*.*.x"
 
   - name : publish-release-jar
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -209,8 +209,8 @@ volumes :
 
 steps :
   - name : package-jar
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -286,8 +286,8 @@ trigger :
 
 steps :
   - name : deploy
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -331,8 +331,8 @@ trigger :
 
 steps :
   - name : rollback
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -356,8 +356,8 @@ trigger :
 
 steps :
   - name : deploy
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -402,8 +402,8 @@ trigger :
 
 steps :
   - name : rollback
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -431,8 +431,8 @@ volumes :
 steps :
   - name : create-release-tag
     failure : ignore
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
