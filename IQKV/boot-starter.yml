@@ -14,8 +14,8 @@ volumes :
 steps :
 
   - name : build boot-starter-mvc-rest
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -37,8 +37,8 @@ steps :
       - mvn verify -Dstyle.color=always -Dmaven.javadoc.skip=true org.jacoco:jacoco-maven-plugin:report --batch-mode --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD
 
   - name : build boot-starter-kafka
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -55,8 +55,8 @@ steps :
       - build boot-starter-mvc-rest
 
   - name : build boot-starter-amqp
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -73,8 +73,8 @@ steps :
       - build boot-starter-kafka
 
   - name : build boot-starter-observability
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -91,8 +91,8 @@ steps :
       - build boot-starter-amqp
 
   - name : build boot-starter-cache
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -109,8 +109,8 @@ steps :
       - build boot-starter-observability
 
   - name : publish-snapshot-jar boot-starter-mvc-rest
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -131,8 +131,8 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-mvc-rest
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -164,8 +164,8 @@ steps :
       - publish-release-jar boot-starter-mvc-rest
 
   - name : publish-snapshot-jar boot-starter-kafka
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -186,8 +186,8 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-kafka
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -219,8 +219,8 @@ steps :
       - publish-release-jar boot-starter-kafka
 
   - name : publish-snapshot-jar boot-starter-cache
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -241,8 +241,8 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-cache
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -274,8 +274,8 @@ steps :
       - publish-release-jar boot-starter-cache
 
   - name : publish-snapshot-jar boot-starter-amqp
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -296,8 +296,8 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-amqp
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -329,8 +329,8 @@ steps :
       - publish-release-jar boot-starter-amqp
 
   - name : publish-snapshot-jar boot-starter-observability
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -351,8 +351,8 @@ steps :
       - build boot-starter-cache
 
   - name : publish-release-jar boot-starter-observability
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -423,8 +423,8 @@ volumes :
 steps :
   - name : create-release-tag
     failure : ignore
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
