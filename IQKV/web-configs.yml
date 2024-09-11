@@ -10,8 +10,8 @@ trigger :
 
 steps :
   - name : publish
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     commands :
       - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_AUTHOR_EMAIL=$${SVC_BUILD_GIT_EMAIL}

@@ -15,14 +15,14 @@ steps :
 
   - name : mysql-healthcheck
     image : mysql:5.7.44
-    pull : if-not-exists
+    pull : never
     commands :
       - while ! mysqladmin ping -h mysql-server -u svc_testing -psvc_testing --silent; do sleep 1; done
       - mysql -h mysql-server -u svc_testing -psvc_testing -e "CREATE TABLE IF NOT EXISTS svc_testing_db.pipelines (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50) NOT NULL);"
 
   - name : code-coverage-gate
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -46,8 +46,8 @@ steps :
   - name : static-analysis-gate
     depends_on :
       - code-coverage-gate
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -115,7 +115,7 @@ volumes :
 
 steps :
   - name : publish-snapshot-jar
-    image : cicdimage/builder:openjdk-21-slim-bookworm
+    image : cicdimage/builder
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -134,8 +134,8 @@ steps :
           - "*.*.x"
 
   - name : publish-release-jar
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -204,8 +204,8 @@ volumes :
 
 steps :
   - name : package-jar
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
@@ -281,8 +281,8 @@ trigger :
 
 steps :
   - name : deploy
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -326,8 +326,8 @@ trigger :
 
 steps :
   - name : rollback
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -351,8 +351,8 @@ trigger :
 
 steps :
   - name : deploy
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -397,8 +397,8 @@ trigger :
 
 steps :
   - name : rollback
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     environment :
       HELM_CHARTS_REPOSITORY :
         from_secret : HELM_CHARTS_REPOSITORY
@@ -426,8 +426,8 @@ volumes :
 steps :
   - name : create-release-tag
     failure : ignore
-    image : cicdimage/builder:openjdk-21-slim-bookworm
-    pull : if-not-exists
+    image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
