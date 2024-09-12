@@ -116,6 +116,7 @@ volumes :
 steps :
   - name : publish-snapshot-jar
     image : cicdimage/builder
+    pull : never
     volumes :
       - name : m2cache
         path : /root/.m2
