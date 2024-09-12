@@ -33,7 +33,7 @@ steps :
       - npm install
       - mvn clean compile test-compile --batch-mode -Dstyle.color=always --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD
       #- mvn org.apache.maven.plugins:maven-pmd-plugin:3.21.0:check --batch-mode -Dstyle.color=always --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD
-      - mvn -Dstyle.color=always com.github.spotbugs:spotbugs-maven-plugin:4.7.3.4:check --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true
+      - mvn -Dstyle.color=always com.github.spotbugs:spotbugs-maven-plugin:4.8.6.3:check --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true
       - mvn verify -Dstyle.color=always -Dmaven.javadoc.skip=true org.jacoco:jacoco-maven-plugin:report --batch-mode --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$DEPLOYER_USERNAME -Ddeployer.password=$DEPLOYER_PASSWORD
 
   - name : build boot-starter-kafka
