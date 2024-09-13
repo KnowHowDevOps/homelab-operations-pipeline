@@ -77,7 +77,7 @@ steps :
 
 services :
   - name : db
-    image : postgres:13.13
+    image : postgres:16.4
     environment :
       POSTGRES_USER : postgres
       POSTGRES_PASSWORD : postgres
