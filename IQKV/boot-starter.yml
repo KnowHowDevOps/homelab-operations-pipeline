@@ -108,7 +108,7 @@ steps :
         - failure
         - success
     depends_on :
-      - create-github-release boot-starter-observability
+      - create-github-release boot-starter
 
 ---
 
