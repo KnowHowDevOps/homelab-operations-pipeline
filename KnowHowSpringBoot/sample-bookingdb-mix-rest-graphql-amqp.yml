@@ -234,6 +234,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/init-container-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -256,6 +257,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/edge-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -278,6 +280,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/dashboard-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -300,6 +303,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/importer-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -322,6 +326,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/init-container-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -344,6 +349,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/edge-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -366,6 +372,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/dashboard-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -388,6 +395,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/importer-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
