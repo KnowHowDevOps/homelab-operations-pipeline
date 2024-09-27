@@ -19,9 +19,9 @@ steps :
       - name : m2cache
         path : /root/.m2
     environment :
-      DEPLOYER_USERNAME :
-        from_secret : DEPLOYER_USERNAME
-      DEPLOYER_PASSWORD :
-        from_secret : DEPLOYER_PASSWORD
+      NEXUS_DEPLOYER_USERNAME :
+        from_secret : NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD :
+        from_secret : NEXUS_DEPLOYER_PASSWORD
     commands :
       - printenv
