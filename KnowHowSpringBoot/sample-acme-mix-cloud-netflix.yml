@@ -234,7 +234,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/service-registry
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -258,7 +258,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/api-gateway
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -282,7 +282,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/config-server
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -306,7 +306,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/hystrix-dashboard
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -330,7 +330,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/department-service
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -354,7 +354,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/user-profile-service
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -378,7 +378,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/service-registry
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
@@ -402,7 +402,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/api-gateway
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
@@ -426,7 +426,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/config-server
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
@@ -450,7 +450,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/hystrix-dashboard
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
@@ -474,7 +474,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/department-service
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
@@ -498,7 +498,7 @@ steps :
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/user-profile-service
       force_tag : true
       build_args :
-        - BASE_IMAGE=know-how.download/jre:openjdk-21-slim-bookworm
+        - BASE_IMAGE=know-how.download/cicdimage/jre
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags :
         - ${DRONE_TAG}
