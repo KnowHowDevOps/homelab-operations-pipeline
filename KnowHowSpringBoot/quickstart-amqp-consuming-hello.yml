@@ -220,9 +220,9 @@ steps :
       context : ./
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/quickstart-amqp-consuming-hello
       force_tag : true
       build_args :
@@ -244,9 +244,9 @@ steps :
       context : ./
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/quickstart-amqp-consuming-hello
       force_tag : true
       build_args :

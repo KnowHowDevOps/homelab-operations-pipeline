@@ -228,9 +228,9 @@ steps :
       context : ./service-registry/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/service-registry
       force_tag : true
       build_args :
@@ -252,9 +252,9 @@ steps :
       context : ./api-gateway/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/api-gateway
       force_tag : true
       build_args :
@@ -276,9 +276,9 @@ steps :
       context : ./config-server/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/config-server
       force_tag : true
       build_args :
@@ -300,9 +300,9 @@ steps :
       context : ./hystrix-dashboard/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/hystrix-dashboard
       force_tag : true
       build_args :
@@ -324,9 +324,9 @@ steps :
       context : ./department-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/department-service
       force_tag : true
       build_args :
@@ -348,9 +348,9 @@ steps :
       context : ./user-profile-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/user-profile-service
       force_tag : true
       build_args :
@@ -372,9 +372,9 @@ steps :
       context : ./service-registry/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/service-registry
       force_tag : true
       build_args :
@@ -396,9 +396,9 @@ steps :
       context : ./api-gateway/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/api-gateway
       force_tag : true
       build_args :
@@ -420,9 +420,9 @@ steps :
       context : ./config-server/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/config-server
       force_tag : true
       build_args :
@@ -444,9 +444,9 @@ steps :
       context : ./hystrix-dashboard/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/hystrix-dashboard
       force_tag : true
       build_args :
@@ -468,9 +468,9 @@ steps :
       context : ./department-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/department-service
       force_tag : true
       build_args :
@@ -492,9 +492,9 @@ steps :
       context : ./user-profile-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/user-profile-service
       force_tag : true
       build_args :
