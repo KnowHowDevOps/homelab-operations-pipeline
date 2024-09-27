@@ -232,6 +232,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/service-registry
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -256,6 +257,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/api-gateway
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -280,6 +282,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/config-server
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -304,6 +307,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/hystrix-dashboard
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -328,6 +332,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/department-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -352,6 +357,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/user-profile-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -376,6 +382,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/service-registry
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -400,6 +407,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/api-gateway
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -424,6 +432,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/config-server
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -448,6 +457,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/hystrix-dashboard
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -472,6 +482,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/department-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
@@ -496,6 +507,7 @@ steps :
       password :
         from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/user-profile-service
+      registry : know-how.download
       force_tag : true
       build_args :
         - BASE_IMAGE=know-how.download/cicdimage/jre
