@@ -230,9 +230,9 @@ steps :
       context : ./init-container-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/init-container-service
       force_tag : true
       build_args :
@@ -252,9 +252,9 @@ steps :
       context : ./edge-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/edge-service
       force_tag : true
       build_args :
@@ -274,9 +274,9 @@ steps :
       context : ./dashboard-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/dashboard-service
       force_tag : true
       build_args :
@@ -296,9 +296,9 @@ steps :
       context : ./importer-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/importer-service
       force_tag : true
       build_args :
@@ -318,9 +318,9 @@ steps :
       context : ./init-container-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/init-container-service
       force_tag : true
       build_args :
@@ -340,9 +340,9 @@ steps :
       context : ./edge-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/edge-service
       force_tag : true
       build_args :
@@ -362,9 +362,9 @@ steps :
       context : ./dashboard-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/dashboard-service
       force_tag : true
       build_args :
@@ -384,9 +384,9 @@ steps :
       context : ./importer-service/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/importer-service
       force_tag : true
       build_args :

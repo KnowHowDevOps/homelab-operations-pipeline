@@ -245,9 +245,9 @@ steps :
       context : ./words-processing/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
       force_tag : true
       build_args :
@@ -269,9 +269,9 @@ steps :
       context : ./reports-history/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
       force_tag : true
       build_args :
@@ -293,9 +293,9 @@ steps :
       context : ./words-processing/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
       force_tag : true
       build_args :
@@ -317,9 +317,9 @@ steps :
       context : ./reports-history/
       storage_driver : vfs
       username :
-        from_secret : DOCKER_USERNAME
+        from_secret : SVC_CONTAINER_REGISTRY_USERNAME
       password :
-        from_secret : DOCKER_PASSWORD
+        from_secret : SVC_CONTAINER_REGISTRY_PASSWORD
       repo : know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
       force_tag : true
       build_args :
