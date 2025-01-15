@@ -1,30 +1,29 @@
-kind : pipeline
-name : ContinuousIntegration
-type : docker
+kind: pipeline
+name: ContinuousIntegration
+type: docker
 
-trigger :
-  event :
+trigger:
+  event:
     - push
 
-volumes :
-  - name : m2cache
-    host :
-      path : /app/.m2
+volumes:
+  - name: m2cache
+    host:
+      path: /app/.m2
 
-steps :
-
-  - name : build boot-starter
-    image : cicdimage/builder
-    pull : never
-    volumes :
-      - name : m2cache
-        path : /root/.m2
-    environment :
-      NEXUS_DEPLOYER_USERNAME :
-        from_secret : NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD :
-        from_secret : NEXUS_DEPLOYER_PASSWORD
-    commands :
+steps:
+  - name: build boot-starter
+    image: cicdimage/builder
+    pull: never
+    volumes:
+      - name: m2cache
+        path: /root/.m2
+    environment:
+      NEXUS_DEPLOYER_USERNAME:
+        from_secret: NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD:
+        from_secret: NEXUS_DEPLOYER_PASSWORD
+    commands:
       - javac -version
       - mvn -version
       - node --version
@@ -36,113 +35,109 @@ steps :
       - mvn -Dstyle.color=always com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true
       - mvn verify -Dstyle.color=always -Dmaven.javadoc.skip=true org.jacoco:jacoco-maven-plugin:report --batch-mode --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-
-  - name : publish-snapshot-jar boot-starter
-    image : cicdimage/builder
-    pull : never
-    volumes :
-      - name : m2cache
-        path : /root/.m2
-    environment :
-      NEXUS_DEPLOYER_USERNAME :
-        from_secret : NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD :
-        from_secret : NEXUS_DEPLOYER_PASSWORD
-    commands :
+  - name: publish-snapshot-jar boot-starter
+    image: cicdimage/builder
+    pull: never
+    volumes:
+      - name: m2cache
+        path: /root/.m2
+    environment:
+      NEXUS_DEPLOYER_USERNAME:
+        from_secret: NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD:
+        from_secret: NEXUS_DEPLOYER_PASSWORD
+    commands:
       - mvn deploy -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-snapshots-repo::https://know-how.nexus/repository/maven-snapshots
-    when :
-      branch :
-        include :
+    when:
+      branch:
+        include:
           - "dev"
           - "prerelease/*"
           - "*.*.x"
-    depends_on :
+    depends_on:
       - build boot-starter
 
-  - name : publish-release-jar boot-starter
-    image : cicdimage/builder
-    pull : never
-    volumes :
-      - name : m2cache
-        path : /root/.m2
-    environment :
-      NEXUS_DEPLOYER_USERNAME :
-        from_secret : NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD :
-        from_secret : NEXUS_DEPLOYER_PASSWORD
-    commands :
+  - name: publish-release-jar boot-starter
+    image: cicdimage/builder
+    pull: never
+    volumes:
+      - name: m2cache
+        path: /root/.m2
+    environment:
+      NEXUS_DEPLOYER_USERNAME:
+        from_secret: NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD:
+        from_secret: NEXUS_DEPLOYER_PASSWORD
+    commands:
       - mvn deploy -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-releases-repo::https://know-how.nexus/repository/maven-releases
-    when :
-      ref :
+    when:
+      ref:
         - "refs/tags/*"
 
-
-  - name : create-github-release boot-starter
-    image : plugins/github-release
-    settings :
-      api_key :
-        from_secret : GITHUB_API_ACCESS_TOKEN
-      title : boot-starter-mvc-rest ${DRONE_TAG}
-      note : "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
-      files : ./boot-starter-mvc-rest/target/*.jar
-    when :
-      ref :
+  - name: create-github-release boot-starter
+    image: plugins/github-release
+    settings:
+      api_key:
+        from_secret: GITHUB_API_ACCESS_TOKEN
+      title: boot-starter-mvc-rest ${DRONE_TAG}
+      note: "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
+      files: ./boot-starter-mvc-rest/target/*.jar
+    when:
+      ref:
         - "refs/tags/*"
-    depends_on :
+    depends_on:
       - publish-release-jar boot-starter
 
-
-  - name : notify-slack
-    image : plugins/slack
-    settings :
-      webhook :
-        from_secret : SLACK_WEBHOOK
-      channel : dev
-      template : >
+  - name: notify-slack
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: SLACK_WEBHOOK
+      channel: dev
+      template: >
         {{#success build.status}}
          :large_green_circle: :package: *${DRONE_COMMIT_MESSAGE}*
          {{build.link}} ({{build.branch}}) by {{build.author}}
         {{else}}
          :red_circle: :package: {{build.link}} ({{build.branch}}) by {{build.author}}
         {{/success}}
-    when :
-      status :
+    when:
+      status:
         - failure
         - success
-    depends_on :
+    depends_on:
       - create-github-release boot-starter
 
 ---
-
-kind : pipeline
-name : ManualRelease
-type : docker
-trigger :
-  event :
+kind: pipeline
+name: ManualRelease
+type: docker
+trigger:
+  event:
     - custom
-  branch :
+  branch:
     - "dev"
     - "*.*.x"
 
-volumes :
-  - name : m2cache
-    host :
-      path : /app/.m2
+volumes:
+  - name: m2cache
+    host:
+      path: /app/.m2
 
-steps :
-  - name : create-release-tag
-    failure : ignore
-    image : cicdimage/builder
-    pull : never
-    volumes :
-      - name : m2cache
-        path : /root/.m2
-    environment :
-      NEXUS_DEPLOYER_USERNAME :
-        from_secret : NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD :
-        from_secret : NEXUS_DEPLOYER_PASSWORD
-    commands :
+steps:
+  - name: create-release-tag
+    failure: ignore
+    image: cicdimage/builder
+    pull: never
+    volumes:
+      - name: m2cache
+        path: /root/.m2
+    environment:
+      NEXUS_DEPLOYER_USERNAME:
+        from_secret: NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD:
+        from_secret: NEXUS_DEPLOYER_PASSWORD
+    commands:
       - echo Prepare new version ${RELEASE_VERSION}
       - mkdir ${RELEASE_VERSION}
       - rmdir ${RELEASE_VERSION}
