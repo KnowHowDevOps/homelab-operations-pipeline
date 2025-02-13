@@ -243,7 +243,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/words-processing
       registry: know-how.download
       force_tag: true
       build_args:
@@ -268,7 +268,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/reports-history
       registry: know-how.download
       force_tag: true
       build_args:
@@ -293,7 +293,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/words-processing
       registry: know-how.download
       force_tag: true
       build_args:
@@ -318,7 +318,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/reports-history
       registry: know-how.download
       force_tag: true
       build_args:
@@ -351,7 +351,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:22}-${CI_PARENT_BUILD_NUMBER} -n ${DRONE_DEPLOY_TO}-env
 
@@ -395,7 +395,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
@@ -419,7 +419,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n ${DRONE_DEPLOY_TO}-env
 
@@ -464,7 +464,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
