@@ -12,22 +12,13 @@ volumes:
       path: /app/.m2
 
 steps:
-  - name: mysql-healthcheck
-    image: mysql:5.7.44
-    pull: never
-    commands:
-      - while ! mysqladmin ping -h mysql-server -u svc_testing -psvc_testing --silent; do sleep 1; done
-      - mysql -h mysql-server -u svc_testing -psvc_testing -e "CREATE TABLE IF NOT EXISTS svc_testing_db.pipelines (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50) NOT NULL);"
-
   - name: code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
         path: /root/.m2
     environment:
-      DATASOURCE_DRIVER: com.mysql.cj.jdbc.Driver
-      DATASOURCE_URL: jdbc:mysql://mysql-server:3306/svc_testing_db
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
       NEXUS_DEPLOYER_PASSWORD:
@@ -45,7 +36,7 @@ steps:
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -62,7 +53,7 @@ steps:
     commands:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - pmd check -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d src -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - mvn com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   - name: notify-slack-on-failure
@@ -79,15 +70,6 @@ steps:
     depends_on:
       - code-coverage-gate
       - static-analysis-gate
-
-services:
-  - name: mysql-server
-    image: mysql:5.7.44
-    environment:
-      MYSQL_DATABASE: svc_testing_db
-      MYSQL_USER: svc_testing
-      MYSQL_PASSWORD: svc_testing
-      MYSQL_ROOT_PASSWORD: svc_root
 
 ---
 kind: pipeline
@@ -113,7 +95,7 @@ volumes:
 
 steps:
   - name: publish-snapshot-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -124,7 +106,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - mvn deploy -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-snapshots-repo::https://know-how.nexus/repository/maven-snapshots
+      - mvn deploy -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -P 'know-how-nexus'
     when:
       branch:
         include:
@@ -133,7 +115,7 @@ steps:
           - "*.*.x"
 
   - name: publish-release-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -144,7 +126,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - mvn deploy -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-releases-repo::https://know-how.nexus/repository/maven-releases
+      - mvn deploy -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -P 'know-how-nexus'
     when:
       ref:
         - "refs/tags/*"
@@ -183,6 +165,7 @@ steps:
     depends_on:
       - publish-snapshot-jar
       - publish-release-jar
+
 ---
 kind: pipeline
 name: DockerImagePublishing
@@ -202,7 +185,7 @@ volumes:
 
 steps:
   - name: package-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -213,7 +196,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   - name: build-container-with-feature
@@ -228,11 +211,11 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -253,11 +236,11 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -275,19 +258,21 @@ trigger:
     - promote
   target:
     - sit
+    - uat
   ref:
     - "refs/heads/feature/containerized-*"
 
 steps:
   - name: deploy
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
+      - helm template ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:22}-${CI_PARENT_BUILD_NUMBER} -n ${DRONE_DEPLOY_TO}-env
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:22}-${CI_PARENT_BUILD_NUMBER} -n ${DRONE_DEPLOY_TO}-env
 
   - name: notify-slack
@@ -319,19 +304,20 @@ trigger:
     - rollback
   target:
     - sit
+    - uat
   ref:
     - "refs/heads/feature/containerized-*"
 
 steps:
   - name: rollback
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
+      - helm rollback --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
 kind: pipeline
@@ -348,13 +334,13 @@ trigger:
 
 steps:
   - name: deploy
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n ${DRONE_DEPLOY_TO}-env
 
@@ -393,14 +379,14 @@ trigger:
 
 steps:
   - name: rollback
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
+      - helm rollback --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
 kind: pipeline
@@ -421,7 +407,7 @@ volumes:
 steps:
   - name: create-release-tag
     failure: ignore
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache

@@ -1,5 +1,6 @@
 kind: pipeline
 name: CodeVerification
+
 type: docker
 
 trigger:
@@ -13,19 +14,21 @@ volumes:
 
 steps:
   - name: code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
         path: /root/.m2
     environment:
-      DATASOURCE_DRIVER: org.postgresql.Driver
-      DATASOURCE_URL: jdbc:postgresql://db:5432/svc_testing_db
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MONGODB_SERVER_URI: mongodb://svc_testing_mongo:svc_testing_mongo@mongo:27017/userprofiledb?authSource=admin
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
+      SONAR_HOST:
+        from_secret: SONAR_HOST
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
     commands:
       - javac -version
       - mvn -version
@@ -34,12 +37,13 @@ steps:
       - npx --version
       - npm install
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn install -Dstyle.color=always -Dmaven.javadoc.skip=true -DskipTests -Dmaven.test.skip=true --file shared/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn install -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true --file boot-starter-cache/pom.xml  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn install -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true --file boot-starter-mvc-rest/pom.xml  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -56,9 +60,8 @@ steps:
     commands:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - pmd check -d ./shared -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
-      - pmd check -d ./words-processing -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
-      - pmd check -d ./reports-history -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d ./user-profile-service -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d ./department-service -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - mvn com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   - name: notify-slack-on-failure
@@ -77,31 +80,12 @@ steps:
       - static-analysis-gate
 
 services:
-  - name: db
-    image: postgres:16.6
+  - name: mongo
+    image: mongo:5.0-focal
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: svc_testing_db
-
-  - name: zookeeper
-    image: docker.io/bitnami/zookeeper:3.9.3
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-      ALLOW_ANONYMOUS_LOGIN: "yes"
-
-  - name: kafka
-    image: docker.io/bitnami/kafka:3.9.0
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ENABLE_KRAFT: "no"
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_KAFKA://:9091
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_KAFKA://kafka:9091
-      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: true
-      ALLOW_PLAINTEXT_LISTENER: "yes"
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_KAFKA:PLAINTEXT
+      MONGO_INITDB_ROOT_USERNAME: svc_testing_mongo
+      MONGO_INITDB_ROOT_PASSWORD: svc_testing_mongo
+      MONGO_INITDB_DATABASE: userprofiledb
 
 ---
 kind: pipeline
@@ -127,7 +111,7 @@ volumes:
 
 steps:
   - name: publish-snapshot-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -147,7 +131,7 @@ steps:
           - "*.*.x"
 
   - name: publish-release-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -217,7 +201,7 @@ volumes:
 
 steps:
   - name: package-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -228,26 +212,26 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-  - name: build-container-with-feature-for-words-processing
+  - name: build-container-with-feature-for-service-registry
     depends_on:
       - package-jar
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./words-processing/
+      context: ./service-registry/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/service-registry
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -256,23 +240,23 @@ steps:
         include:
           - "feature/containerized-*"
 
-  - name: build-container-with-feature-for-reports-history
+  - name: build-container-with-feature-for-api-gateway
     depends_on:
-      - build-container-with-feature-for-words-processing
+      - build-container-with-feature-for-service-registry
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./reports-history/
+      context: ./api-gateway/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/api-gateway
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -281,23 +265,123 @@ steps:
         include:
           - "feature/containerized-*"
 
-  - name: build-container-release-words-processing
+  - name: build-container-with-feature-for-config-server
     depends_on:
-      - package-jar
+      - build-container-with-feature-for-api-gateway
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./words-processing/
+      context: ./config-server/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/words-processing
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/config-server
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-with-feature-for-hystrix-dashboard
+    depends_on:
+      - build-container-with-feature-for-config-server
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./hystrix-dashboard/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/hystrix-dashboard
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-with-feature-for-department-service
+    depends_on:
+      - build-container-with-feature-for-hystrix-dashboard
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./department-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/department-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-with-feature-for-user-profile-service
+    depends_on:
+      - build-container-with-feature-for-department-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./user-profile-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/user-profile-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-release-service-registry
+    depends_on:
+      - package-jar
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./service-registry/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/service-registry
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -306,23 +390,123 @@ steps:
       ref:
         - "refs/tags/*"
 
-  - name: build-container-release-reports-history
+  - name: build-container-release-api-gateway
     depends_on:
-      - build-container-release-words-processing
+      - build-container-release-service-registry
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./reports-history/
+      context: ./api-gateway/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}/reports-history
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/api-gateway
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-config-server
+    depends_on:
+      - build-container-release-api-gateway
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./config-server/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/config-server
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-hystrix-dashboard
+    depends_on:
+      - build-container-release-config-server
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./hystrix-dashboard/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/hystrix-dashboard
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-department-service
+    depends_on:
+      - build-container-release-hystrix-dashboard
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./department-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/department-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-user-profile-service
+    depends_on:
+      - build-container-release-department-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./user-profile-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/user-profile-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -345,13 +529,13 @@ trigger:
 
 steps:
   - name: deploy
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:22}-${CI_PARENT_BUILD_NUMBER} -n ${DRONE_DEPLOY_TO}-env
 
@@ -389,13 +573,13 @@ trigger:
 
 steps:
   - name: rollback
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
@@ -413,35 +597,15 @@ trigger:
 
 steps:
   - name: deploy
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n ${DRONE_DEPLOY_TO}-env
-
-  - name: notify-slack
-    image: plugins/slack
-    settings:
-      webhook:
-        from_secret: SLACK_WEBHOOK
-      channel: dev
-      template: >
-        {{#success build.status}}
-         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
-         {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{else}}
-         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{/success}}
-    when:
-      status:
-        - failure
-        - success
-    depends_on:
-      - deploy
 
 ---
 kind: pipeline
@@ -458,13 +622,13 @@ trigger:
 
 steps:
   - name: rollback
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
@@ -486,7 +650,7 @@ volumes:
 steps:
   - name: create-release-tag
     failure: ignore
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -502,7 +666,6 @@ steps:
       - git checkout -b v${RELEASE_VERSION}
       - mvn versions:set -DremoveSnapshot
       - mvn versions:set -DnewVersion=${RELEASE_VERSION}
-      - mvn versions:update-parent
       - >-
         git commit -a -m "feat: bump version to $${RELEASE_VERSION}"
       - git tag ${RELEASE_VERSION} && git push origin ${RELEASE_VERSION}
@@ -510,7 +673,6 @@ steps:
       - sleep 10
       - git tag -d ${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v${RELEASE_VERSION}
       - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT}
-      - mvn versions:update-parent -DallowSnapshots=true
       - >-
         git commit -a -m "feat: create new $${NEXT_SNAPSHOT}"
       - git push origin ${DRONE_COMMIT_BRANCH}

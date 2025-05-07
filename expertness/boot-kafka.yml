@@ -13,7 +13,7 @@ volumes:
 
 steps:
   - name: code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -30,14 +30,13 @@ steps:
       - npm --version
       - npx --version
       - npm install
-      - lerna -v
       - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -54,7 +53,7 @@ steps:
     commands:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - pmd check -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d src -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - mvn com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   - name: notify-slack-on-failure
@@ -96,7 +95,7 @@ volumes:
 
 steps:
   - name: publish-snapshot-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -116,7 +115,7 @@ steps:
           - "*.*.x"
 
   - name: publish-release-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -166,6 +165,7 @@ steps:
     depends_on:
       - publish-snapshot-jar
       - publish-release-jar
+
 ---
 kind: pipeline
 name: ManualRelease
@@ -185,7 +185,7 @@ volumes:
 steps:
   - name: create-release-tag
     failure: ignore
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -194,7 +194,7 @@ steps:
       - echo Prepare new version ${RELEASE_VERSION}
       - export NEXT_SNAPSHOT=${SNAPSHOT_VERSION}-SNAPSHOT
       - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
-      - export GIT_AUTHOR_EMAIL="$${SVC_BUILD_GIT_EMAIL}"
+      - export GIT_AUTHOR_EMAIL=$${SVC_BUILD_GIT_EMAIL}
       - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
       - git remote set-url --push origin ${DRONE_GIT_SSH_URL}

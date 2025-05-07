@@ -13,14 +13,12 @@ volumes:
 
 steps:
   - name: code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
         path: /root/.m2
     environment:
-      SPRING_AMQP_DESERIALIZATION_TRUST_ALL: true
-      RABBITMQ_HOST: rabbitmq
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
       NEXUS_DEPLOYER_PASSWORD:
@@ -38,7 +36,7 @@ steps:
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -55,7 +53,7 @@ steps:
     commands:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - pmd check -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d src -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - mvn com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   - name: notify-slack-on-failure
@@ -72,13 +70,6 @@ steps:
     depends_on:
       - code-coverage-gate
       - static-analysis-gate
-
-services:
-  - name: rabbitmq
-    image: rabbitmq:management-alpine
-    environment:
-      RABBITMQ_DEFAULT_USER: svc_testing
-      RABBITMQ_DEFAULT_PASS: svc_testing
 
 ---
 kind: pipeline
@@ -104,7 +95,7 @@ volumes:
 
 steps:
   - name: publish-snapshot-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -124,7 +115,7 @@ steps:
           - "*.*.x"
 
   - name: publish-release-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -174,223 +165,6 @@ steps:
     depends_on:
       - publish-snapshot-jar
       - publish-release-jar
----
-kind: pipeline
-name: DockerImagePublishing
-type: docker
-
-trigger:
-  event:
-    - push
-
-depends_on:
-  - ArtifactsPublishing
-
-volumes:
-  - name: m2cache
-    host:
-      path: /app/.m2
-
-steps:
-  - name: package-jar
-    image: cicdimage/builder
-    pull: never
-    volumes:
-      - name: m2cache
-        path: /root/.m2
-    environment:
-      NEXUS_DEPLOYER_USERNAME:
-        from_secret: NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD:
-        from_secret: NEXUS_DEPLOYER_PASSWORD
-    commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
-      - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-
-  - name: build-container-with-feature
-    depends_on:
-      - package-jar
-    image: plugins/docker
-    settings:
-      dockerfile: ./Dockerfile
-      context: ./
-      storage_driver: vfs
-      username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
-      password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}
-      registry: know-how.download
-      force_tag: true
-      build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
-        - VCS_REFERENCE=${DRONE_COMMIT}
-      tags:
-        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
-    when:
-      branch:
-        include:
-          - "feature/containerized-*"
-
-  - name: build-container-release-image
-    depends_on:
-      - package-jar
-    image: plugins/docker
-    settings:
-      dockerfile: ./Dockerfile
-      context: ./
-      storage_driver: vfs
-      username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
-      password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}
-      registry: know-how.download
-      force_tag: true
-      build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
-        - VCS_REFERENCE=${DRONE_COMMIT}
-      tags:
-        - ${DRONE_TAG}
-        - "latest"
-    when:
-      ref:
-        - "refs/tags/*"
-
----
-kind: pipeline
-name: PromoteFeatureDeployment
-type: docker
-trigger:
-  event:
-    - promote
-  target:
-    - sit
-  ref:
-    - "refs/heads/feature/containerized-*"
-
-steps:
-  - name: deploy
-    image: cicdimage/builder
-    pull: never
-    environment:
-      HELM_CHARTS_REPOSITORY:
-        from_secret: HELM_CHARTS_REPOSITORY
-    commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
-      - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:22}-${CI_PARENT_BUILD_NUMBER} -n ${DRONE_DEPLOY_TO}-env
-
-  - name: notify-slack
-    image: plugins/slack
-    settings:
-      webhook:
-        from_secret: SLACK_WEBHOOK
-      channel: dev
-      template: >
-        {{#success build.status}}
-         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
-         {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{else}}
-         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{/success}}
-    when:
-      status:
-        - failure
-        - success
-    depends_on:
-      - deploy
----
-kind: pipeline
-name: RollbackFeatureDeployment
-type: docker
-trigger:
-  event:
-    - rollback
-  target:
-    - sit
-  ref:
-    - "refs/heads/feature/containerized-*"
-
-steps:
-  - name: rollback
-    image: cicdimage/builder
-    pull: never
-    environment:
-      HELM_CHARTS_REPOSITORY:
-        from_secret: HELM_CHARTS_REPOSITORY
-    commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
-
----
-kind: pipeline
-name: PromoteDeployment
-type: docker
-trigger:
-  event:
-    - promote
-  target:
-    - uat
-    - production
-  ref:
-    - "refs/tags/*"
-
-steps:
-  - name: deploy
-    image: cicdimage/builder
-    pull: never
-    environment:
-      HELM_CHARTS_REPOSITORY:
-        from_secret: HELM_CHARTS_REPOSITORY
-    commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
-      - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n ${DRONE_DEPLOY_TO}-env
-
-  - name: notify-slack
-    image: plugins/slack
-    settings:
-      webhook:
-        from_secret: SLACK_WEBHOOK
-      channel: dev
-      template: >
-        {{#success build.status}}
-         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
-         {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{else}}
-         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{/success}}
-    when:
-      status:
-        - failure
-        - success
-    depends_on:
-      - deploy
-
----
-kind: pipeline
-name: RollbackDeployment
-type: docker
-trigger:
-  event:
-    - rollback
-  target:
-    - uat
-    - production
-  ref:
-    - "refs/tags/*"
-
-steps:
-  - name: rollback
-    image: cicdimage/builder
-    pull: never
-    environment:
-      HELM_CHARTS_REPOSITORY:
-        from_secret: HELM_CHARTS_REPOSITORY
-    commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
 kind: pipeline
@@ -411,7 +185,7 @@ volumes:
 steps:
   - name: create-release-tag
     failure: ignore
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache

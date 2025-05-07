@@ -13,7 +13,7 @@ volumes:
 
 steps:
   - name: build boot-starter
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -36,7 +36,7 @@ steps:
       - mvn verify -Dstyle.color=always -Dmaven.javadoc.skip=true org.jacoco:jacoco-maven-plugin:report --batch-mode --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   - name: publish-snapshot-jar boot-starter
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -58,7 +58,7 @@ steps:
       - build boot-starter
 
   - name: publish-release-jar boot-starter
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -127,7 +127,7 @@ volumes:
 steps:
   - name: create-release-tag
     failure: ignore
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache

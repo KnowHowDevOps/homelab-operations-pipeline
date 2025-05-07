@@ -13,12 +13,15 @@ volumes:
 
 steps:
   - name: code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
         path: /root/.m2
     environment:
+      DATASOURCE_DRIVER: org.postgresql.Driver
+      DATASOURCE_URL: jdbc:postgresql://db:5432/svc_testing_db
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
       NEXUS_DEPLOYER_PASSWORD:
@@ -30,13 +33,13 @@ steps:
       - npm --version
       - npx --version
       - npm install
-      - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn install -Dstyle.color=always -Dmaven.javadoc.skip=true -DskipTests -Dmaven.test.skip=true --file shared/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -53,7 +56,9 @@ steps:
     commands:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - pmd check -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d ./shared -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d ./words-processing -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check -d ./reports-history -f text -R https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - mvn com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   - name: notify-slack-on-failure
@@ -70,6 +75,36 @@ steps:
     depends_on:
       - code-coverage-gate
       - static-analysis-gate
+
+services:
+  - name: db
+    image: postgres:16.6
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: svc_testing_db
+
+  - name: zookeeper
+    image: confluentinc/cp-zookeeper:7.8.2
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_SERVERS: zookeeper:2888:3888
+
+  - name: kafka
+    image: confluentinc/cp-kafka:7.8.2
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
 
 ---
 kind: pipeline
@@ -95,7 +130,7 @@ volumes:
 
 steps:
   - name: publish-snapshot-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -115,7 +150,7 @@ steps:
           - "*.*.x"
 
   - name: publish-release-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -138,7 +173,7 @@ steps:
         from_secret: GITHUB_API_ACCESS_TOKEN
       title: ${DRONE_TAG}
       note: "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
-      files: ./target/*.jar
+      files: ./*/target/*.jar
     when:
       ref:
         - "refs/tags/*"
@@ -185,7 +220,7 @@ volumes:
 
 steps:
   - name: package-jar
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
@@ -196,26 +231,26 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/operativeness/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-  - name: build-container-with-feature
+  - name: build-container-with-feature-for-words-processing
     depends_on:
       - package-jar
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./
+      context: ./words-processing/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/words-processing
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -224,23 +259,73 @@ steps:
         include:
           - "feature/containerized-*"
 
-  - name: build-container-release-image
+  - name: build-container-with-feature-for-reports-history
     depends_on:
-      - package-jar
+      - build-container-with-feature-for-words-processing
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./
+      context: ./reports-history/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/knowhowspringboot/${DRONE_REPO_NAME}
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/reports-history
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/cicdimage/jre
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-release-words-processing
+    depends_on:
+      - package-jar
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./words-processing/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/words-processing
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-reports-history
+    depends_on:
+      - build-container-release-words-processing
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./reports-history/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/iqkv/${DRONE_REPO_NAME}/reports-history
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -263,13 +348,13 @@ trigger:
 
 steps:
   - name: deploy
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:22}-${CI_PARENT_BUILD_NUMBER} -n ${DRONE_DEPLOY_TO}-env
 
@@ -307,13 +392,13 @@ trigger:
 
 steps:
   - name: rollback
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
@@ -331,13 +416,13 @@ trigger:
 
 steps:
   - name: deploy
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n ${DRONE_DEPLOY_TO}-env
 
@@ -376,13 +461,13 @@ trigger:
 
 steps:
   - name: rollback
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/KnowHowSpringBoot/${DRONE_REPO_NAME}
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
@@ -404,7 +489,7 @@ volumes:
 steps:
   - name: create-release-tag
     failure: ignore
-    image: cicdimage/builder
+    image: cicdtools/pipeline-runner
     pull: never
     volumes:
       - name: m2cache
