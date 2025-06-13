@@ -12,7 +12,7 @@ volumes:
       path: /app/.m2
 steps:
   - name: build
-    image: busybox
+    image: cicdtools/pipeline-runner
     pull: if-not-exists
     volumes:
       - name: m2cache
