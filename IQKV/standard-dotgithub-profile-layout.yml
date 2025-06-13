@@ -23,4 +23,5 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - printenv
+      - pnpm install
+      - pnpm prettier:check
