@@ -26,6 +26,8 @@ steps:
       - name: m2cache
         path: /root/.m2
     environment:
+      RABBITMQ_HOST: rabbitmq
+      SPRING_AMQP_DESERIALIZATION_TRUST_ALL: true
       DATASOURCE_DRIVER: com.mysql.cj.jdbc.Driver
       DATASOURCE_URL: jdbc:mysql://db:3306/svc_testing_db?serverTimezone=UTC&rewriteBatchedStatements=true&characterEncoding=UTF-8
       NEXUS_DEPLOYER_USERNAME:
@@ -89,6 +91,12 @@ services:
       MYSQL_PASSWORD: svc_testing
       MYSQL_ROOT_PASSWORD: svc_root
       TZ: UTC
+
+  - name: rabbitmq
+    image: rabbitmq:management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: svc_testing
+      RABBITMQ_DEFAULT_PASS: svc_testing
 
 ---
 kind: pipeline
