@@ -1,5 +1,5 @@
 kind: pipeline
-name: CodeVerification
+name: VerifyCode
 type: docker
 
 trigger:
@@ -74,7 +74,7 @@ steps:
 
 ---
 kind: pipeline
-name: ArtifactsPublishing
+name: PublishArtifacts
 type: docker
 
 trigger:
@@ -82,12 +82,12 @@ trigger:
     - push
   ref:
     - refs/heads/dev
-    - refs/heads/prerelease*
+    - refs/heads/prerelease/*
     - refs/heads/*.*.x
     - refs/tags/*
 
 depends_on:
-  - CodeVerification
+  - VerifyCode
 
 volumes:
   - name: m2cache
