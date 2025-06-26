@@ -7,7 +7,7 @@ trigger:
     - push
 
 steps:
-  - name: build
+  - name: verify
     image: cicdtools/pipeline-runner
     pull: never
     environment:
