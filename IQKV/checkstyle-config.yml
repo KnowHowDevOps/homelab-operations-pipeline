@@ -7,16 +7,19 @@ trigger:
     - push
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
+  - name: npm-cache
+    host:
+      path: /app/.npm-cache
 
 steps:
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -30,7 +33,6 @@ steps:
       - npm --version
       - npx --version
       - npm ci
-      - lerna -v
       - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
@@ -40,8 +42,10 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
+      - name: npm-cache
+        path: /root/.npm
     environment:
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
@@ -90,7 +94,7 @@ depends_on:
   - VerifyCode
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
 
@@ -99,7 +103,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -119,7 +123,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -178,7 +182,7 @@ trigger:
     - "*.*.x"
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
 
@@ -188,7 +192,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     commands:
       - echo Prepare new version ${RELEASE_VERSION}

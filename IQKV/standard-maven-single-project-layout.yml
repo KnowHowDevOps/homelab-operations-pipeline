@@ -7,7 +7,7 @@ trigger:
     - push
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
   - name: pnpm-store
@@ -18,7 +18,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
       - name: pnpm-store
         path: /drone/src/.pnpm-store
@@ -38,7 +38,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -88,7 +88,7 @@ depends_on:
   - VerifyCode
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
 
@@ -97,7 +97,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -117,7 +117,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -178,7 +178,7 @@ depends_on:
   - PublishArtifacts
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
 
@@ -187,7 +187,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -396,7 +396,7 @@ trigger:
     - "*.*.x"
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
 
@@ -406,7 +406,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     commands:
       - echo Prepare new version ${RELEASE_VERSION}
