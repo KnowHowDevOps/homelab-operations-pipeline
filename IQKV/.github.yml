@@ -24,3 +24,6 @@ steps:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
       - printenv
+      - pnpm install
+      - ls -a . .pnpm-store
+      - ls -a .pnpm-store
