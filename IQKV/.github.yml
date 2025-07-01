@@ -16,8 +16,6 @@ steps:
     pull: if-not-exists
     volumes:
       - name: pnpm-store
-        path: /root/.pnpm-store
+        path: /drone/src/.pnpm-store
     commands:
       - pnpm install
-      - echo "$PWD"
-      - ls -a .pnpm-store/v10
