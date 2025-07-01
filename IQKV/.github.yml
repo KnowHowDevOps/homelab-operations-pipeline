@@ -1,5 +1,5 @@
 kind: pipeline
-name: CIx
+name: CI
 type: docker
 
 trigger:
