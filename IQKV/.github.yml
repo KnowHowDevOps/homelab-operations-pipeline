@@ -7,7 +7,7 @@ trigger:
     - push
 
 volumes:
-  - name: m2cache
+  - name: maven-cache
     host:
       path: /app/.m2
 steps:
@@ -15,7 +15,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: if-not-exists
     volumes:
-      - name: m2cache
+      - name: maven-cache
         path: /root/.m2
     environment:
       NEXUS_DEPLOYER_USERNAME:
@@ -25,5 +25,5 @@ steps:
     commands:
       - printenv
       - pnpm install
-      - ls -a . .pnpm-store
-      - ls -a .pnpm-store
+      - ls -a .
+      - ls -a .pnpm-store/v10
