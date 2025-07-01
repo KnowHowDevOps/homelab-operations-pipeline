@@ -7,23 +7,17 @@ trigger:
     - push
 
 volumes:
-  - name: maven-cache
+  - name: pnpm-store
     host:
-      path: /app/.m2
+      path: /app/.pnpm-store
 steps:
-  - name: build
+  - name: rebuild
     image: cicdtools/pipeline-runner
     pull: if-not-exists
     volumes:
-      - name: maven-cache
-        path: /root/.m2
-    environment:
-      NEXUS_DEPLOYER_USERNAME:
-        from_secret: NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD:
-        from_secret: NEXUS_DEPLOYER_PASSWORD
+      - name: pnpm-storepnpm-store
+        path: /root/.pnpm-store
     commands:
-      - printenv
       - pnpm install
       - ls -a .
       - ls -a .pnpm-store/v10
