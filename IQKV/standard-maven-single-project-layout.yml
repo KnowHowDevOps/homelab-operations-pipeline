@@ -10,7 +10,9 @@ volumes:
   - name: m2cache
     host:
       path: /app/.m2
-
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 steps:
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
@@ -18,6 +20,8 @@ steps:
     volumes:
       - name: m2cache
         path: /root/.m2
+      - name: pnpm-store
+        path: /drone/src/.pnpm-store
     environment:
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME

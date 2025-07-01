@@ -6,10 +6,17 @@ trigger:
   event:
     - push
 
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 steps:
   - name: verify
     image: cicdtools/pipeline-runner
     pull: never
+    volumes:
+      - name: pnpm-store
+        path: /drone/src/.pnpm-store
     environment:
       SONAR_HOST_URL:
         from_secret: SONAR_HOST_URL
@@ -42,10 +49,17 @@ trigger:
 depends_on:
   - VerifyCode
 
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 steps:
   - name: pnpm-publish
     image: cicdtools/pipeline-runner
     pull: never
+    volumes:
+      - name: pnpm-store
+        path: /drone/src/.pnpm-store
     environment:
       SONAR_HOST_URL:
         from_secret: SONAR_HOST_URL
