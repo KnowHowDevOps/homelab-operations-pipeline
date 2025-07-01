@@ -15,9 +15,9 @@ steps:
     image: cicdtools/pipeline-runner
     pull: if-not-exists
     volumes:
-      - name: pnpm-storepnpm-store
+      - name: pnpm-store
         path: /root/.pnpm-store
     commands:
       - pnpm install
-      - ls -a .
+      - echo pwd
       - ls -a .pnpm-store/v10
