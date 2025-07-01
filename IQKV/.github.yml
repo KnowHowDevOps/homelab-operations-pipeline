@@ -19,5 +19,5 @@ steps:
         path: /root/.pnpm-store
     commands:
       - pnpm install
-      - echo pwd
+      - echo "$PWD"
       - ls -a .pnpm-store/v10
