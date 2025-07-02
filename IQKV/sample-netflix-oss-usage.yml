@@ -6,6 +6,9 @@ type: docker
 trigger:
   event:
     - push
+  ref:
+    exclude:
+      - refs/heads/dependabot/npm_and_yarn/*
 
 volumes:
   - name: maven-cache
