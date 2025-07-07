@@ -211,7 +211,7 @@ steps:
 
 ---
 kind: pipeline
-name: DockerImagePublishing
+name: PublishDockerImage
 type: docker
 
 trigger:
