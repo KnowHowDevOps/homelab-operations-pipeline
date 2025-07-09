@@ -35,7 +35,7 @@ steps:
       - node --version
       - npm --version
       - npx --version
-      - npm ci
+      - pnpm install
       - mvn clean compile test-compile --batch-mode -Dstyle.color=always --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       #- mvn org.apache.maven.plugins:maven-pmd-plugin:3.21.0:check --batch-mode -Dstyle.color=always --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn -Dstyle.color=always com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true

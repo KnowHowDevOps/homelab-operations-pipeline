@@ -41,7 +41,7 @@ steps:
       - node --version
       - npm --version
       - npx --version
-      - npm ci
+      - pnpm install
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn install -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true --file boot-starter-cache/pom.xml  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn install -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true --file boot-starter-mvc-rest/pom.xml  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
