@@ -43,9 +43,6 @@ steps:
     commands:
       - javac -version
       - mvn -version
-      - node --version
-      - npm --version
-      - npx --version
       - pnpm install
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn install -Dstyle.color=always -Dmaven.javadoc.skip=true -DskipTests -Dmaven.test.skip=true --file booking-demand-api-etl-support/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
