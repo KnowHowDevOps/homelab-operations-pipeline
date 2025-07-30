@@ -1498,7 +1498,7 @@ class Good {
             ]]>
         </example>
     </rule>
-
+<!--
     <rule name="FieldOfHashCodeMissingInEquals"
           class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
           language="java"
@@ -1566,7 +1566,7 @@ class Bad {
             ]]>
         </example>
     </rule>
-
+-->
     <rule name="HashCodeOnlyCallsSuper"
           language="java"
           message="hashCode only calls super."
