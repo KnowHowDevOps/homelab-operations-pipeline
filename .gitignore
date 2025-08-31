@@ -183,3 +183,5 @@ cmake-build-*/
 
 # JIRA plugin
 atlassian-ide-plugin.xml
+
+.release-it.json

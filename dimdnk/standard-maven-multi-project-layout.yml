@@ -1,13 +1,111 @@
 kind: pipeline
-name: ContinuousIntegration
+name: VerifyCode
 type: docker
 
 trigger:
   event:
     - push
+    - tag
   ref:
-    exclude:
-      - refs/heads/dependabot/npm_and_yarn/*
+    include:
+      - refs/heads/dev
+      - refs/heads/feature/*
+      - refs/heads/rfc/*
+      - refs/heads/bugfix/*
+      - refs/heads/improvement/*
+      - refs/heads/prerelease/*
+      - refs/heads/library/*
+      - refs/heads/hotfix/*
+      - refs/heads/*.*.x
+      - refs/tags/*
+
+volumes:
+  - name: maven-cache
+    host:
+      path: /app/.m2
+  - name: npm-cache
+    host:
+      path: /app/.npm-cache
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
+
+steps:
+  - name: code-coverage-gate
+    image: cicdtools/pipeline-runner
+    pull: never
+    volumes:
+      - name: maven-cache
+        path: /root/.m2
+    environment:
+      NEXUS_DEPLOYER_USERNAME:
+        from_secret: NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD:
+        from_secret: NEXUS_DEPLOYER_PASSWORD
+    commands:
+      - javac -version
+      - mvn -version
+      - pnpm install
+      - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+
+  - name: static-analysis-gate
+    depends_on:
+      - code-coverage-gate
+    image: cicdtools/pipeline-runner
+    pull: never
+    volumes:
+      - name: maven-cache
+        path: /root/.m2
+      - name: npm-cache
+        path: /root/.npm
+    environment:
+      NEXUS_DEPLOYER_USERNAME:
+        from_secret: NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD:
+        from_secret: NEXUS_DEPLOYER_PASSWORD
+      SONAR_HOST:
+        from_secret: SONAR_HOST
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
+    commands:
+      - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.2.0.4988:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - pmd check --minimum-priority High -d ./servicename/src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      # - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.4.0:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
+
+  - name: notify-slack-on-failure
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: SLACK_WEBHOOK
+      channel: dev
+      template: >
+        :red_circle: :thunder_cloud_and_rain: {{build.link}} ({{build.branch}}) by {{build.author}}
+    when:
+      status:
+        - failure
+    depends_on:
+      - code-coverage-gate
+      - static-analysis-gate
+
+---
+kind: pipeline
+name: PublishArtifacts
+type: docker
+
+trigger:
+  event:
+    - push
+    - tag
+  ref:
+    - refs/heads/dev
+    - refs/heads/prerelease/*
+    - refs/heads/*.*.x
+    - refs/tags/*
+
+depends_on:
+  - VerifyCode
 
 volumes:
   - name: maven-cache
@@ -18,27 +116,7 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  - name: build boot-starter
-    image: cicdtools/pipeline-runner
-    pull: never
-    volumes:
-      - name: maven-cache
-        path: /root/.m2
-      - name: pnpm-store
-        path: /drone/src/.pnpm-store
-    environment:
-      NEXUS_DEPLOYER_USERNAME:
-        from_secret: NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD:
-        from_secret: NEXUS_DEPLOYER_PASSWORD
-    commands:
-      - pnpm install
-      - mvn clean compile test-compile --batch-mode -Dstyle.color=always --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      #- mvn org.apache.maven.plugins:maven-pmd-plugin:3.21.0:check --batch-mode -Dstyle.color=always --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn -Dstyle.color=always com.github.spotbugs:spotbugs-maven-plugin:4.8.6.6:check --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true
-      - mvn verify -Dstyle.color=always -Dmaven.javadoc.skip=true org.jacoco:jacoco-maven-plugin:report --batch-mode --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-
-  - name: publish-snapshot-jar boot-starter
+  - name: publish-snapshot-jar
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
@@ -50,17 +128,15 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - mvn deploy -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-snapshots-repo::https://know-how.nexus/repository/maven-snapshots
+      - mvn deploy -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-snapshots-repo::https://know-how.nexus/repository/maven-snapshots
     when:
       branch:
         include:
           - "dev"
           - "prerelease/*"
           - "*.*.x"
-    depends_on:
-      - build boot-starter
 
-  - name: publish-release-jar boot-starter
+  - name: publish-release-jar
     image: cicdtools/pipeline-runner
     pull: never
     volumes:
@@ -72,24 +148,34 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - mvn deploy -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-releases-repo::https://know-how.nexus/repository/maven-releases
+      - mvn deploy -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-releases-repo::https://know-how.nexus/repository/maven-releases
     when:
       ref:
         - "refs/tags/*"
 
-  - name: create-github-release boot-starter
-    image: plugins/github-release
-    settings:
-      api_key:
+  - name: create-github-release
+    depends_on:
+      - publish-release-jar
+    image: cicdtools/pipeline-runner
+    pull: never
+    volumes:
+      - name: maven-cache
+        path: /root/.m2
+      - name: npm-cache
+        path: /root/.npm
+    environment:
+      GITHUB_TOKEN:
         from_secret: GITHUB_API_ACCESS_TOKEN
-      title: boot-starter-mvc-rest ${DRONE_TAG}
-      note: "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
-      files: ./boot-starter-mvc-rest/target/*.jar
+    commands:
+      - git checkout -b release
+      - pnpm install && git config --unset core.hooksPath
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json
+      - git fetch --tags
+      - release-it --ci --no-increment -VV
+      - git status
     when:
       ref:
         - "refs/tags/*"
-    depends_on:
-      - publish-release-jar boot-starter
 
   - name: notify-slack
     image: plugins/slack
@@ -109,15 +195,19 @@ steps:
         - failure
         - success
     depends_on:
-      - create-github-release boot-starter
+      - publish-snapshot-jar
+      - publish-release-jar
 
 ---
+
 kind: pipeline
-name: ManualRelease
+name: ReleasePackage
 type: docker
 trigger:
   event:
-    - custom
+    - promote
+  target:
+    - release
   branch:
     - "dev"
     - "*.*.x"
@@ -126,6 +216,9 @@ volumes:
   - name: maven-cache
     host:
       path: /app/.m2
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 
 steps:
   - name: create-release-tag
@@ -136,55 +229,38 @@ steps:
       - name: maven-cache
         path: /root/.m2
     environment:
-      NEXUS_DEPLOYER_USERNAME:
-        from_secret: NEXUS_DEPLOYER_USERNAME
-      NEXUS_DEPLOYER_PASSWORD:
-        from_secret: NEXUS_DEPLOYER_PASSWORD
+      GITHUB_TOKEN:
+        from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
-      - echo Prepare new version ${RELEASE_VERSION}
-      - mkdir ${RELEASE_VERSION}
-      - rmdir ${RELEASE_VERSION}
-      - export NEXT_SNAPSHOT=${SNAPSHOT_VERSION}-SNAPSHOT
+      - export RELEASE_VERSION=$(jq -r .version package.json | cut -d '-' -f 1)
+      - export INCREMENT_COMMAND="increment_version -m $${RELEASE_VERSION}"
+      - export SNAPSHOT_VERSION=$($${INCREMENT_COMMAND})
+      - echo Prepare new version $${RELEASE_VERSION}
+      - export NEXT_SNAPSHOT=$${SNAPSHOT_VERSION}-SNAPSHOT
       - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
-      - export GIT_AUTHOR_EMAIL=$${SVC_BUILD_GIT_EMAIL}
+      - export GIT_AUTHOR_EMAIL="$${SVC_BUILD_GIT_EMAIL}"
       - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
       - git remote set-url --push origin ${DRONE_GIT_SSH_URL}
-      - git checkout -b v${RELEASE_VERSION}
-      - mvn versions:set -DremoveSnapshot --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=${RELEASE_VERSION} --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DremoveSnapshot --file boot-starter-kafka/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=${RELEASE_VERSION} --file boot-starter-kafka/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent --file boot-starter-kafka/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DremoveSnapshot --file boot-starter-amqp/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=${RELEASE_VERSION} --file boot-starter-amqp/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent --file boot-starter-amqp/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DremoveSnapshot --file boot-starter-cache/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=${RELEASE_VERSION} --file boot-starter-cache/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent --file boot-starter-cache/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - git checkout -b v$${RELEASE_VERSION}
+      - mvn versions:set -DremoveSnapshot
+      - mvn versions:set -DnewVersion=$${RELEASE_VERSION}
+      - mvn versions:update-parent
       - >-
-        git commit -a -m "feat: bump version to $${RELEASE_VERSION}"
-      - git tag ${RELEASE_VERSION} && git push origin ${RELEASE_VERSION}
-      - echo "✅ Release tag ${RELEASE_VERSION} was created."
+        git commit -a -m "chore: bump v$${RELEASE_VERSION}"
+      - git tag $${RELEASE_VERSION} && git push origin $${RELEASE_VERSION}
+      - echo "✅ Release tag $${RELEASE_VERSION} was created."
       - sleep 10
-      - git tag -d ${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v${RELEASE_VERSION}
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent -DallowSnapshots=true --file pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} --file boot-starter-kafka/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent -DallowSnapshots=true --file boot-starter-kafka/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} --file boot-starter-amqp/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent -DallowSnapshots=true --file boot-starter-amqp/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} --file boot-starter-cache/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent -DallowSnapshots=true --file boot-starter-cache/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} --file boot-starter-mail/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent -DallowSnapshots=true --file boot-starter-mail/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} --file boot-starter-security/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent -DallowSnapshots=true --file boot-starter-security/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn versions:update-parent -DallowSnapshots=true --file boot-starter-mvc-rest/pom.xml -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - git tag -d $${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v$${RELEASE_VERSION}
+      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT}
+      - mvn versions:update-parent -DallowSnapshots=true
+      - pnpm install && git config --unset core.hooksPath
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json
+      - git fetch --tags
+      - release-it --ci --no-increment -VV
+      - npm version $${SNAPSHOT_VERSION} --no-git-tag-version
       - >-
-        git commit -a -m "feat: create new $${NEXT_SNAPSHOT}"
+        git commit -a -m "chore: create new $${NEXT_SNAPSHOT}"
       - git push origin ${DRONE_COMMIT_BRANCH}
       - echo "✅ Started $${NEXT_SNAPSHOT}."
-      - echo "🚀 Good job, new version ${RELEASE_VERSION} was released successfully."
+      - echo "🚀 Good job, new version $${RELEASE_VERSION} was released successfully."

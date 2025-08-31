@@ -5,9 +5,19 @@ type: docker
 trigger:
   event:
     - push
+    - tag
   ref:
-    exclude:
-      - refs/heads/dependabot/npm_and_yarn/*
+    include:
+      - refs/heads/dev
+      - refs/heads/feature/*
+      - refs/heads/rfc/*
+      - refs/heads/bugfix/*
+      - refs/heads/improvement/*
+      - refs/heads/prerelease/*
+      - refs/heads/library/*
+      - refs/heads/hotfix/*
+      - refs/heads/*.*.x
+      - refs/tags/*
 
 volumes:
   - name: maven-cache
@@ -16,6 +26,9 @@ volumes:
   - name: npm-cache
     host:
       path: /app/.npm-cache
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 
 steps:
   - name: code-coverage-gate
@@ -57,9 +70,9 @@ steps:
         from_secret: SONAR_TOKEN
     commands:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.2.0.4988:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - pmd check --minimum-priority High -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
-      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.3.2:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
+      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.4.0:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   - name: notify-slack-on-failure
     image: plugins/slack
@@ -84,6 +97,7 @@ type: docker
 trigger:
   event:
     - push
+    - tag
   ref:
     - refs/heads/dev
     - refs/heads/prerelease/*
@@ -97,6 +111,9 @@ volumes:
   - name: maven-cache
     host:
       path: /app/.m2
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 
 steps:
   - name: publish-snapshot-jar
@@ -137,18 +154,28 @@ steps:
         - "refs/tags/*"
 
   - name: create-github-release
-    image: plugins/github-release
-    settings:
-      api_key:
+    depends_on:
+      - publish-release-jar
+    image: cicdtools/pipeline-runner
+    pull: never
+    volumes:
+      - name: maven-cache
+        path: /root/.m2
+      - name: npm-cache
+        path: /root/.npm
+    environment:
+      GITHUB_TOKEN:
         from_secret: GITHUB_API_ACCESS_TOKEN
-      title: ${DRONE_TAG}
-      note: "**Full Changelog**: https://github.com/${DRONE_REPO}/commits/${DRONE_TAG}"
-      files: ./target/*.jar
+    commands:
+      - git checkout -b release
+      - pnpm install && git config --unset core.hooksPath
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json
+      - git fetch --tags
+      - release-it --ci --no-increment -VV
+      - git status
     when:
       ref:
         - "refs/tags/*"
-    depends_on:
-      - publish-release-jar
 
   - name: notify-slack
     image: plugins/slack
@@ -179,6 +206,11 @@ type: docker
 trigger:
   event:
     - push
+    - tag
+  ref:
+    include:
+      - refs/heads/feature/containerized-*
+      - refs/tags/*
 
 depends_on:
   - PublishArtifacts
@@ -187,6 +219,9 @@ volumes:
   - name: maven-cache
     host:
       path: /app/.m2
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 
 steps:
   - name: package-jar
@@ -391,12 +426,15 @@ steps:
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
+
 kind: pipeline
-name: ManualRelease
+name: ReleasePackage
 type: docker
 trigger:
   event:
-    - custom
+    - promote
+  target:
+    - release
   branch:
     - "dev"
     - "*.*.x"
@@ -405,6 +443,9 @@ volumes:
   - name: maven-cache
     host:
       path: /app/.m2
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
 
 steps:
   - name: create-release-tag
@@ -414,28 +455,39 @@ steps:
     volumes:
       - name: maven-cache
         path: /root/.m2
+    environment:
+      GITHUB_TOKEN:
+        from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
-      - echo Prepare new version ${RELEASE_VERSION}
-      - export NEXT_SNAPSHOT=${SNAPSHOT_VERSION}-SNAPSHOT
+      - export RELEASE_VERSION=$(jq -r .version package.json | cut -d '-' -f 1)
+      - export INCREMENT_COMMAND="increment_version -m $${RELEASE_VERSION}"
+      - export SNAPSHOT_VERSION=$($${INCREMENT_COMMAND})
+      - echo Prepare new version $${RELEASE_VERSION}
+      - export NEXT_SNAPSHOT=$${SNAPSHOT_VERSION}-SNAPSHOT
       - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
-      - export GIT_AUTHOR_EMAIL=$${SVC_BUILD_GIT_EMAIL}
+      - export GIT_AUTHOR_EMAIL="$${SVC_BUILD_GIT_EMAIL}"
       - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
       - git remote set-url --push origin ${DRONE_GIT_SSH_URL}
-      - git checkout -b v${RELEASE_VERSION}
+      - git checkout -b v$${RELEASE_VERSION}
       - mvn versions:set -DremoveSnapshot
-      - mvn versions:set -DnewVersion=${RELEASE_VERSION}
+      - mvn versions:set -DnewVersion=$${RELEASE_VERSION}
       - mvn versions:update-parent
       - >-
-        git commit -a -m "feat: bump version to $${RELEASE_VERSION}"
-      - git tag ${RELEASE_VERSION} && git push origin ${RELEASE_VERSION}
-      - echo "✅ Release tag ${RELEASE_VERSION} was created."
+        git commit -a -m "chore: bump v$${RELEASE_VERSION}"
+      - git tag $${RELEASE_VERSION} && git push origin $${RELEASE_VERSION}
+      - echo "✅ Release tag $${RELEASE_VERSION} was created."
       - sleep 10
-      - git tag -d ${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v${RELEASE_VERSION}
+      - git tag -d $${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v$${RELEASE_VERSION}
       - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT}
       - mvn versions:update-parent -DallowSnapshots=true
+      - pnpm install && git config --unset core.hooksPath
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json
+      - git fetch --tags
+      - release-it --ci --no-increment -VV
+      - npm version $${SNAPSHOT_VERSION} --no-git-tag-version
       - >-
-        git commit -a -m "feat: create new $${NEXT_SNAPSHOT}"
+        git commit -a -m "chore: create new $${NEXT_SNAPSHOT}"
       - git push origin ${DRONE_COMMIT_BRANCH}
       - echo "✅ Started $${NEXT_SNAPSHOT}."
-      - echo "🚀 Good job, new version ${RELEASE_VERSION} was released successfully."
+      - echo "🚀 Good job, new version $${RELEASE_VERSION} was released successfully."

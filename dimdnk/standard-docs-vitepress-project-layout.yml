@@ -5,6 +5,7 @@ type: docker
 trigger:
   event:
     - push
+    - tag
 
 volumes:
   - name: pnpm-store
@@ -16,7 +17,7 @@ steps:
     pull: if-not-exists
     volumes:
       - name: pnpm-store
-        path: /drone/src/.pnpm-store
+        path: /root/.pnpm-store
     environment:
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME

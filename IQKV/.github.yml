@@ -5,9 +5,19 @@ type: docker
 trigger:
   event:
     - push
+    - tag
   ref:
-    exclude:
-      - refs/heads/dependabot/npm_and_yarn/*
+    include:
+      - refs/heads/dev
+      - refs/heads/feature/*
+      - refs/heads/rfc/*
+      - refs/heads/bugfix/*
+      - refs/heads/improvement/*
+      - refs/heads/prerelease/*
+      - refs/heads/library/*
+      - refs/heads/hotfix/*
+      - refs/heads/*.*.x
+      - refs/tags/*
 
 volumes:
   - name: pnpm-store
@@ -19,6 +29,6 @@ steps:
     pull: if-not-exists
     volumes:
       - name: pnpm-store
-        path: /drone/src/.pnpm-store
+        path: /root/.pnpm-store
     commands:
       - pnpm install

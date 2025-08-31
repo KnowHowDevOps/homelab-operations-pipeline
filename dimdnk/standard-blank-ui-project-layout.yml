@@ -5,6 +5,7 @@ type: docker
 trigger:
   event:
     - push
+    - tag
 
 volumes:
   - name: pnpm-store
@@ -16,7 +17,7 @@ steps:
     pull: never
     volumes:
       - name: pnpm-store
-        path: /drone/src/.pnpm-store
+        path: /root/.pnpm-store
     environment:
       SONAR_HOST_URL:
         from_secret: SONAR_HOST_URL
@@ -32,6 +33,7 @@ steps:
       - pnpm install
       - pnpm ci:lint
       - npx @sonar/scan
+      - pnpm build
 
 ---
 kind: pipeline
@@ -41,6 +43,7 @@ type: docker
 trigger:
   event:
     - push
+    - tag
   ref:
     - refs/heads/dev
     - refs/heads/prerelease/*
@@ -59,7 +62,7 @@ steps:
     pull: never
     volumes:
       - name: pnpm-store
-        path: /drone/src/.pnpm-store
+        path: /root/.pnpm-store
     environment:
       SONAR_HOST_URL:
         from_secret: SONAR_HOST_URL
@@ -79,7 +82,7 @@ steps:
       - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
       - git config user.email $${SVC_BUILD_GIT_EMAIL}
       - pnpm install
-      - npm unpublish -f @iqkv/standard-ui-project-layout@0.0.0
+      - npm unpublish -f @iqkv/standard-blank-ui-project-layout@0.0.0
       - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks
     when:
       branch:
