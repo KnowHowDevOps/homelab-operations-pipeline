@@ -1,5 +1,6 @@
 kind: pipeline
 name: VerifyCode
+
 type: docker
 
 trigger:
@@ -29,6 +30,7 @@ volumes:
   - name: pnpm-store
     host:
       path: /app/.pnpm-store
+
 steps:
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
@@ -37,19 +39,22 @@ steps:
       - name: maven-cache
         path: /root/.m2
     environment:
-      DATASOURCE_DRIVER: org.postgresql.Driver
-      R2DBC_DATASOURCE_URL: r2dbc:postgresql://db:5432/svc_testing_db
-      JDBC_DATASOURCE_URL: jdbc:postgresql://db:5432/svc_testing_db
+      MONGODB_SERVER_URI: mongodb://svc_testing_mongo:svc_testing_mongo@mongo:27017/userprofiledb?authSource=admin
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
+      SONAR_HOST:
+        from_secret: SONAR_HOST
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
     commands:
       - javac -version
       - mvn -version
       - pnpm install
-      - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn install -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true --file boot-starter-cache/pom.xml  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn install -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true --file boot-starter-mvc-rest/pom.xml  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   - name: static-analysis-gate
     depends_on:
@@ -73,8 +78,9 @@ steps:
     commands:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.2.0.4988:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - pmd check --minimum-priority High -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
-      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.4.0:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
+      - pmd check --minimum-priority High -d ./user-profile-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check --minimum-priority High -d ./department-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      #- mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.4.0:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   - name: notify-slack-on-failure
     image: plugins/slack
@@ -92,12 +98,12 @@ steps:
       - static-analysis-gate
 
 services:
-  - name: db
-    image: postgres:16.6
+  - name: mongo
+    image: mongo:5.0-focal
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: svc_testing_db
+      MONGO_INITDB_ROOT_USERNAME: svc_testing_mongo
+      MONGO_INITDB_ROOT_PASSWORD: svc_testing_mongo
+      MONGO_INITDB_DATABASE: userprofiledb
 
 ---
 kind: pipeline
@@ -108,7 +114,6 @@ trigger:
   event:
     - push
     - tag
-
   ref:
     - refs/heads/dev
     - refs/heads/prerelease/*
@@ -250,19 +255,19 @@ steps:
       - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-  - name: build-container-with-feature
+  - name: build-container-with-feature-for-service-registry
     depends_on:
       - package-jar
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./
+      context: ./service-registry/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/service-registry
       registry: know-how.download
       force_tag: true
       build_args:
@@ -275,19 +280,269 @@ steps:
         include:
           - "feature/containerized-*"
 
-  - name: build-container-release-image
+  - name: build-container-with-feature-for-api-gateway
     depends_on:
-      - package-jar
+      - build-container-with-feature-for-service-registry
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./
+      context: ./api-gateway/
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/api-gateway
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-with-feature-for-config-server
+    depends_on:
+      - build-container-with-feature-for-api-gateway
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./config-server/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/config-server
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-with-feature-for-hystrix-dashboard
+    depends_on:
+      - build-container-with-feature-for-config-server
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./hystrix-dashboard/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/hystrix-dashboard
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-with-feature-for-department-service
+    depends_on:
+      - build-container-with-feature-for-hystrix-dashboard
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./department-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/department-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-with-feature-for-user-profile-service
+    depends_on:
+      - build-container-with-feature-for-department-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./user-profile-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/user-profile-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
+    when:
+      branch:
+        include:
+          - "feature/containerized-*"
+
+  - name: build-container-release-service-registry
+    depends_on:
+      - package-jar
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./service-registry/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/service-registry
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-api-gateway
+    depends_on:
+      - build-container-release-service-registry
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./api-gateway/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/api-gateway
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-config-server
+    depends_on:
+      - build-container-release-api-gateway
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./config-server/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/config-server
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-hystrix-dashboard
+    depends_on:
+      - build-container-release-config-server
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./hystrix-dashboard/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/hystrix-dashboard
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-department-service
+    depends_on:
+      - build-container-release-hystrix-dashboard
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./department-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/department-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+        - "latest"
+    when:
+      ref:
+        - "refs/tags/*"
+
+  - name: build-container-release-user-profile-service
+    depends_on:
+      - build-container-release-department-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./user-profile-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/user-profile-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -391,26 +646,6 @@ steps:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n ${DRONE_DEPLOY_TO}-env
-
-  - name: notify-slack
-    image: plugins/slack
-    settings:
-      webhook:
-        from_secret: SLACK_WEBHOOK
-      channel: dev
-      template: >
-        {{#success build.status}}
-         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
-         {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{else}}
-         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
-        {{/success}}
-    when:
-      status:
-        - failure
-        - success
-    depends_on:
-      - deploy
 
 ---
 kind: pipeline

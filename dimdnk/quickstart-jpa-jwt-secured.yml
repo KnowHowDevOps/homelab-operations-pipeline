@@ -31,6 +31,13 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
+  - name: mysql-healthcheck
+    image: mysql:5.7.44
+    pull: never
+    commands:
+      - while ! mysqladmin ping -h mysql-server -u svc_testing -psvc_testing --silent; do sleep 1; done
+      - mysql -h mysql-server -u svc_testing -psvc_testing -e "CREATE TABLE IF NOT EXISTS svc_testing_db.pipelines (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50) NOT NULL);"
+
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
     pull: never
@@ -38,7 +45,8 @@ steps:
       - name: maven-cache
         path: /root/.m2
     environment:
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      DATASOURCE_DRIVER: com.mysql.cj.jdbc.Driver
+      DATASOURCE_URL: jdbc:mysql://mysql-server:3306/svc_testing_db
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
       NEXUS_DEPLOYER_PASSWORD:
@@ -91,27 +99,13 @@ steps:
       - static-analysis-gate
 
 services:
-  - name: zookeeper
-    image: confluentinc/cp-zookeeper:7.8.3
+  - name: mysql-server
+    image: mysql:5.7.44
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_SERVER_ID: 1
-      ZOOKEEPER_SERVERS: zookeeper:2888:3888
-
-  - name: kafka
-    image: confluentinc/cp-kafka:7.8.3
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://kafka:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
-      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+      MYSQL_DATABASE: svc_testing_db
+      MYSQL_USER: svc_testing
+      MYSQL_PASSWORD: svc_testing
+      MYSQL_ROOT_PASSWORD: svc_root
 
 ---
 kind: pipeline
@@ -221,7 +215,6 @@ steps:
     depends_on:
       - publish-snapshot-jar
       - publish-release-jar
-
 ---
 kind: pipeline
 name: PublishDockerImage
@@ -275,7 +268,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       registry: know-how.download
       force_tag: true
       build_args:
@@ -300,7 +293,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       registry: know-how.download
       force_tag: true
       build_args:

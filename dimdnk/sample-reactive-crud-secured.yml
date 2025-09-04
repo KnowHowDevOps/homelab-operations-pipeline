@@ -29,15 +29,7 @@ volumes:
   - name: pnpm-store
     host:
       path: /app/.pnpm-store
-
 steps:
-  - name: mysql-healthcheck
-    image: mysql:5.7.44
-    pull: never
-    commands:
-      - while ! mysqladmin ping -h mysql-server -u svc_testing -psvc_testing --silent; do sleep 1; done
-      - mysql -h mysql-server -u svc_testing -psvc_testing -e "CREATE TABLE IF NOT EXISTS svc_testing_db.pipelines (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50) NOT NULL);"
-
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
     pull: never
@@ -45,8 +37,9 @@ steps:
       - name: maven-cache
         path: /root/.m2
     environment:
-      DATASOURCE_DRIVER: com.mysql.cj.jdbc.Driver
-      DATASOURCE_URL: jdbc:mysql://mysql-server:3306/svc_testing_db
+      DATASOURCE_DRIVER: org.postgresql.Driver
+      R2DBC_DATASOURCE_URL: r2dbc:postgresql://db:5432/svc_testing_db
+      JDBC_DATASOURCE_URL: jdbc:postgresql://db:5432/svc_testing_db
       NEXUS_DEPLOYER_USERNAME:
         from_secret: NEXUS_DEPLOYER_USERNAME
       NEXUS_DEPLOYER_PASSWORD:
@@ -99,13 +92,12 @@ steps:
       - static-analysis-gate
 
 services:
-  - name: mysql-server
-    image: mysql:5.7.44
+  - name: db
+    image: postgres:16.6
     environment:
-      MYSQL_DATABASE: svc_testing_db
-      MYSQL_USER: svc_testing
-      MYSQL_PASSWORD: svc_testing
-      MYSQL_ROOT_PASSWORD: svc_root
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: svc_testing_db
 
 ---
 kind: pipeline
@@ -116,6 +108,7 @@ trigger:
   event:
     - push
     - tag
+
   ref:
     - refs/heads/dev
     - refs/heads/prerelease/*
@@ -215,6 +208,7 @@ steps:
     depends_on:
       - publish-snapshot-jar
       - publish-release-jar
+
 ---
 kind: pipeline
 name: PublishDockerImage
@@ -268,7 +262,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       registry: know-how.download
       force_tag: true
       build_args:
@@ -293,7 +287,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/iqkv/${DRONE_REPO_NAME}
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       registry: know-how.download
       force_tag: true
       build_args:
