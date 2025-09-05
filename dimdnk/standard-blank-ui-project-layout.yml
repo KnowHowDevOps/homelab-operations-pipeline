@@ -82,7 +82,7 @@ steps:
       - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
       - git config user.email $${SVC_BUILD_GIT_EMAIL}
       - pnpm install
-      - npm unpublish -f @iqkv/standard-blank-ui-project-layout@0.0.0
+      - npm unpublish -f @know-how/standard-blank-ui-project-layout@0.0.0
       - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks
     when:
       branch:
