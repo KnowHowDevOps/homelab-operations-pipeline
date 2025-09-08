@@ -432,7 +432,6 @@ steps:
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n ${DRONE_DEPLOY_TO}-env
 
 ---
-
 kind: pipeline
 name: ReleasePackage
 type: docker

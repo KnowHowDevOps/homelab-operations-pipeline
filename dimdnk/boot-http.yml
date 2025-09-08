@@ -198,7 +198,6 @@ steps:
       - publish-release-jar
 
 ---
-
 kind: pipeline
 name: ReleasePackage
 type: docker
