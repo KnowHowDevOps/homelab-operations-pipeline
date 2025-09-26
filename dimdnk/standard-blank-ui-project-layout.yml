@@ -86,7 +86,7 @@ steps:
       - pnpm ci:lint
       - pnpm test
       - pnpm build
-      - npm unpublish -f @know-how/standard-blank-ui-project-layout@0.0.0
+      - npm unpublish -f @iqkv/standard-blank-ui-project-layout@0.0.0
       - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks
     when:
       branch:
