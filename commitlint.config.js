@@ -11,6 +11,8 @@ module.exports = {
         "rfc",
         "docs",
         "style",
+        "improvement",
+        "enhancement",
         "refactor",
         "perf",
         "test",
