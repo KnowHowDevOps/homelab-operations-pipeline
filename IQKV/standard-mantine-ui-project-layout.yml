@@ -30,7 +30,7 @@ steps:
       NPM_EMAIL:
         from_secret: NEXUS_NPM_EMAIL
     commands:
-      - pnpm install && pnpm lint
+      - pnpm install && pnpm prettier:check
       - pnpm ci:lint
       - npx @sonar/scan
       - pnpm build
