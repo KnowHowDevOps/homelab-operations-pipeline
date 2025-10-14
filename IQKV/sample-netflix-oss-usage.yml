@@ -12,6 +12,7 @@ trigger:
       - refs/heads/dev
       - refs/heads/feature/*
       - refs/heads/rfc/*
+      - refs/heads/poc/*
       - refs/heads/bugfix/*
       - refs/heads/improvement/*
       - refs/heads/prerelease/*
