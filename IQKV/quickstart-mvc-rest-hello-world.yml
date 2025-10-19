@@ -299,7 +299,7 @@ trigger:
     - promote
   target:
     - sit
-    - uat
+    - staging
   ref:
     - "refs/heads/feature/containerized-*"
 
@@ -349,7 +349,7 @@ trigger:
     - rollback
   target:
     - sit
-    - uat
+    - staging
   ref:
     - "refs/heads/feature/containerized-*"
 
@@ -373,7 +373,7 @@ trigger:
   event:
     - promote
   target:
-    - uat
+    - staging
     - production
   ref:
     - "refs/tags/*"
@@ -418,7 +418,7 @@ trigger:
   event:
     - rollback
   target:
-    - uat
+    - staging
     - production
   ref:
     - "refs/tags/*"
