@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This file specifies a spotbugs filter for excluding reports that
+     should not be considered errors.
+
+     The format of this file is documented at:
+
+       https://spotbugs.readthedocs.io/en/latest/filter.html
+
+     When possible, please specify the full names of the bug codes,
+     using the pattern attribute, to make it clearer what reports are
+     being suppressed.  You can find a listing of codes at:
+
+       https://spotbugs.readthedocs.io/en/latest/bugDescriptions.html
+  -->
+
+<FindBugsFilter>
+
+    <!-- Ignore spotbugs reports from incomplete detectors -->
+    <Match>
+        <Bug pattern="TESTING"/>
+    </Match>
+
+    <!-- We don't mind having redundant checks for null, it is more error prone to later changes -->
+    <Match>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+
+    <!-- Ignore negating result of compareTo -->
+    <Match>
+        <Bug pattern="RV_NEGATING_RESULT_OF_COMPARETO"/>
+    </Match>
+
+    <!-- Ignore class naming convention issues -->
+    <Match>
+        <Bug pattern="NM_CLASS_NAMING_CONVENTION"/>
+    </Match>
+
+    <!-- Ignore unread public and protected fields as someone may depend on Undertow and use them in their app -->
+    <Match>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+
+    <!-- False positives => ignoring, the field is read in tests -->
+    <Match>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+    <!-- False positives => ignoring, the field is regular boolean, no complex bitwise operation is in place here -->
+    <Match>
+        <Bug pattern="BIT_IOR"/>
+    </Match>
+
+    <!-- field is always incremented/decremented inside synchronized blocks using the same lock -->
+    <Match>
+        <Bug pattern="VO_VOLATILE_INCREMENT"/>
+    </Match>
+
+
+    <!-- Even per javadoc of Object.wait(), this should be always used in loop. It is on purpose -->
+    <Match>
+        <Bug pattern="WA_NOT_IN_LOOP"/>
+    </Match>
+
+    <!-- Ignore returning references to internal representations of objects -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+
+    <!-- Ignoring when internal representation stores reference to external representation -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Intentional switch case follow through -->
+    <Match>
+        <Bug pattern="SF_SWITCH_FALLTHROUGH"/>
+    </Match>
+
+    <!-- The PathTemplate equivalent always exist, checked already by the contains method -->
+    <Match>
+        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+        <Class name="io.undertow.util.PathTemplateMatcher"/>
+    </Match>
+
+    <!-- Ignoring switch cases with no default, all cases which can occur are covered -->
+    <Match>
+        <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+    </Match>
+
+    <!-- Intentional throwing RuntimeException instead of checked exception -->
+    <Match>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS"/>
+    </Match>
+
+    <!-- The proper class type returned is handled by createInstance() method being overridden for each subclass => ignoring -->
+    <Match>
+        <Bug pattern="CN_IDIOM_NO_SUPER_CALL"/>
+    </Match>
+
+    <!-- intentional -->
+    <Match>
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>
+    </Match>
+
+    <!-- Field can be modified by code between the first check-->
+    <!-- see https://github.com/spotbugs/spotbugs/issues/1338 -->
+    <Match>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+
+    <!-- At least for now, we don't mind throwing runtime exception, as this is a framework
+     and currently several internal errors are wrapped in a RuntimeException whenever
+      it is an internal error caller cannot handle or an external superclass signature
+      does not contain a throw class-->
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+
+    <!-- HttpHandler.handleEvent throws Exception, and so do all of its subclasses
+    (there are tons of those)-->
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_THROWABLE"/>
+    </Match>
+
+    <Match>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL"/>
+    </Match>
+
+</FindBugsFilter>
