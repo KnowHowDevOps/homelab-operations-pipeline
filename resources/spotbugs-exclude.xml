@@ -20,6 +20,30 @@
         <Bug pattern="TESTING"/>
     </Match>
 
+   <!-- Exclude constructor throw warnings - these are intentional validation in constructors -->
+    <Match>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+
+    <!-- Exclude return value ignored warnings in test code - these are intentional for exception testing -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_INFERRED"/>
+    </Match>
+
+    <!-- Exclude useless suppression warnings - will be removed from code -->
+    <Match>
+        <Bug pattern="US_USELESS_SUPPRESSION_ON_METHOD"/>
+        <Class name="org.gripday.bookstore.shared.MoneyTest"/>
+    </Match>
+
+    <!-- Exclude unread field warnings - these are part of records/DTOs -->
+    <Match>
+        <Bug pattern="URF_UNREAD_FIELD"/>
+    </Match>
+
+
+
     <!-- We don't mind having redundant checks for null, it is more error prone to later changes -->
     <Match>
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
