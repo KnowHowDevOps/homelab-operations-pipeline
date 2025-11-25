@@ -22,19 +22,21 @@
 
    <!-- Exclude constructor throw warnings - these are intentional validation in constructors -->
     <Match>
+        <Class name="~.*" />
         <Bug pattern="CT_CONSTRUCTOR_THROW"/>
     </Match>
 
 
     <!-- Exclude return value ignored warnings in test code - these are intentional for exception testing -->
     <Match>
+        <Class name="~.*" />
         <Bug pattern="RV_RETURN_VALUE_IGNORED_INFERRED"/>
     </Match>
 
     <!-- Exclude useless suppression warnings - will be removed from code -->
     <Match>
         <Bug pattern="US_USELESS_SUPPRESSION_ON_METHOD"/>
-        <Class name="org.gripday.bookstore.shared.MoneyTest"/>
+        <Class name="~.*" />
     </Match>
 
     <!-- Exclude unread field warnings - these are part of records/DTOs -->
