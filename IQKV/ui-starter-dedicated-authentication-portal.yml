@@ -1,0 +1,111 @@
+kind: pipeline
+name: VerifyCode
+type: docker
+
+trigger:
+  event:
+    - push
+    - tag
+
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
+steps:
+  - name: verify
+    image: cicdtools/pipeline-runner
+    pull: never
+    volumes:
+      - name: pnpm-store
+        path: /root/.pnpm-store
+    environment:
+      SONAR_HOST_URL:
+        from_secret: SONAR_HOST_URL
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
+      NPM_USERNAME:
+        from_secret: NEXUS_NPM_USERNAME
+      NPM_PASSWORD:
+        from_secret: NEXUS_NPM_PASSWORD
+      NPM_EMAIL:
+        from_secret: NEXUS_NPM_EMAIL
+    commands:
+      - pnpm install && pnpm prettier:check
+      - pnpm ci:lint
+      - npx @sonar/scan
+      - pnpm build
+
+---
+kind: pipeline
+name: PublishArtifacts
+type: docker
+
+trigger:
+  event:
+    - push
+    - tag
+  ref:
+    - refs/heads/dev
+    - refs/heads/prerelease/*
+    - refs/heads/*.*.x
+    - refs/tags/*
+depends_on:
+  - VerifyCode
+
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
+steps:
+  - name: pnpm-publish
+    image: cicdtools/pipeline-runner
+    pull: never
+    volumes:
+      - name: pnpm-store
+        path: /root/.pnpm-store
+    environment:
+      SONAR_HOST_URL:
+        from_secret: SONAR_HOST_URL
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
+      NPM_USERNAME:
+        from_secret: NEXUS_NPM_USERNAME
+      NPM_PASSWORD:
+        from_secret: NEXUS_NPM_PASSWORD
+      NPM_EMAIL:
+        from_secret: NEXUS_NPM_EMAIL
+    commands:
+      - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
+      - export GIT_AUTHOR_EMAIL=$${SVC_BUILD_GIT_EMAIL}
+      - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
+      - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
+      - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
+      - git config user.email $${SVC_BUILD_GIT_EMAIL}
+      - pnpm install && pnpm lint
+      - npm unpublish -f @iqkv/standard-mantine-ui-project-layout@0.0.0
+      - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks
+    when:
+      branch:
+        include:
+          - "dev"
+          - "prerelease/*"
+          - "*.*.x"
+  - name: notify-slack
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: SLACK_WEBHOOK
+      channel: dev
+      template: >
+        {{#success build.status}}
+         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
+         {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{else}}
+         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{/success}}
+    when:
+      status:
+        - failure
+        - success
+    depends_on:
+      - pnpm-publish
