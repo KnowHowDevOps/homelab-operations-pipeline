@@ -32,6 +32,7 @@ steps:
     commands:
       - pnpm install && pnpm prettier:check
       - pnpm ci:lint
+      - pnpm test:coverage
       - npx @sonar/scan
       - pnpm build
 
