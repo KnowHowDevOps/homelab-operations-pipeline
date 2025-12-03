@@ -51,6 +51,7 @@ steps:
   # Coverage thresholds (JaCoCo):
   #   - user-service: 18% instruction, 48% line, 30% branch
   #   - gateway-service: 27% instruction
+  #   - bookstore-service: 60% instruction, 65% line, 50% branch
   # --------------------------------------------------------------------------
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
@@ -108,6 +109,7 @@ steps:
 
       # PMD analysis for each microservice (High priority violations only)
       - pmd check --minimum-priority High -d ./iqscaffold-user-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check --minimum-priority High -d ./iqscaffold-bookstore-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - pmd check --minimum-priority High -d ./iqscaffold-gateway-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
 
       # SpotBugs analysis with custom exclusions
@@ -290,7 +292,7 @@ steps:
 # ============================================================================
 # Builds and publishes Docker images for all microservices
 # Triggers: Push to feature/* branches and tags
-# Services: user-service, gateway-service
+# Services: user-service, gateway-service, bookstore-service
 # Image naming: know-how.download/{owner}/{repo}/{service}:{tag}
 # ============================================================================
 kind: pipeline
@@ -342,7 +344,7 @@ steps:
   # Feature Branch Docker Builds
   # ==========================================================================
   # Builds images for feature branches with branch name as tag
-  # Sequential build order: user-service → gateway-service
+  # Sequential build order: user-service → gateway-service → bookstore-service
   # ==========================================================================
 
   # --------------------------------------------------------------------------
@@ -401,12 +403,39 @@ steps:
         include:
           - "feature/*"
 
+  # --------------------------------------------------------------------------
+  # Bookstore Service (Feature)
+  # --------------------------------------------------------------------------
+  - name: build-container-with-feature-for-iqscaffold-bookstore-service
+    depends_on:
+      - build-container-with-feature-for-iqscaffold-gateway-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-bookstore-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-bookstore-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:8}
+    when:
+      branch:
+        include:
+          - "feature/*"
 
   # ==========================================================================
   # Release Docker Builds
   # ==========================================================================
   # Builds images for tagged releases with version tag
-  # Sequential build order: user-service → gateway-service
+  # Sequential build order: user-service → gateway-service → bookstore-service
   # ==========================================================================
 
   # --------------------------------------------------------------------------
@@ -452,6 +481,33 @@ steps:
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
       repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-gateway-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG}
+    when:
+      ref:
+        - "refs/tags/*"
+
+  # --------------------------------------------------------------------------
+  # Bookstore Service (Release)
+  # --------------------------------------------------------------------------
+  - name: build-container-release-iqscaffold-bookstore-service
+    depends_on:
+      - build-container-release-iqscaffold-gateway-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-bookstore-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-bookstore-service
       registry: know-how.download
       force_tag: true
       build_args:
