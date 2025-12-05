@@ -19,6 +19,9 @@
     <Match>
         <Bug pattern="TESTING"/>
     </Match>
+    <Match>
+        <Bug pattern="BC_VACUOUS_INSTANCEOF"/>
+    </Match>
 
    <!-- Exclude constructor throw warnings - these are intentional validation in constructors -->
     <Match>
