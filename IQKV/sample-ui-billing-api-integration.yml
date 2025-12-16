@@ -83,7 +83,7 @@ steps:
       - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
       - git config user.email $${SVC_BUILD_GIT_EMAIL}
       - pnpm install && pnpm lint
-      - npm unpublish -f @iqscaffold/app-portal@0.0.0
+      - npm unpublish -f @iqscaffold/sample-ui-billing-api-integration@0.0.0
       - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks
     when:
       branch:
