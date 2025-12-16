@@ -22,6 +22,9 @@
     <Match>
         <Bug pattern="BC_VACUOUS_INSTANCEOF"/>
     </Match>
+    <Match>
+        <Bug pattern="REFLF_REFLECTION_MAY_INCREASE_ACCESSIBILITY_OF_FIELD"/>
+    </Match>
 
    <!-- Exclude constructor throw warnings - these are intentional validation in constructors -->
     <Match>
