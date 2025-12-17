@@ -25,7 +25,9 @@
     <Match>
         <Bug pattern="REFLF_REFLECTION_MAY_INCREASE_ACCESSIBILITY_OF_FIELD"/>
     </Match>
-
+    <Match>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
    <!-- Exclude constructor throw warnings - these are intentional validation in constructors -->
     <Match>
         <Class name="~.*" />
