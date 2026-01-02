@@ -265,13 +265,16 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./init-container-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./edge-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./dashboard-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./ingestor-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   - name: build-container-with-feature-for-init-container-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./init-container-service/CI.dockerfile
       context: ./init-container-service/
       storage_driver: vfs
       username:
@@ -294,7 +297,7 @@ steps:
   - name: build-container-with-feature-for-edge-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./edge-service/CI.dockerfile
       context: ./edge-service/
       storage_driver: vfs
       username:
@@ -317,7 +320,7 @@ steps:
   - name: build-container-with-feature-for-dashboard-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./dashboard-service/CI.dockerfile
       context: ./dashboard-service/
       storage_driver: vfs
       username:
@@ -340,7 +343,7 @@ steps:
   - name: build-container-with-feature-for-ingestor-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./ingestor-service/CI.dockerfile
       context: ./ingestor-service/
       storage_driver: vfs
       username:
@@ -363,7 +366,7 @@ steps:
   - name: build-container-release-init-container-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./init-container-service/CI.dockerfile
       context: ./init-container-service/
       storage_driver: vfs
       username:
@@ -386,7 +389,7 @@ steps:
   - name: build-container-release-edge-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./edge-service/CI.dockerfile
       context: ./edge-service/
       storage_driver: vfs
       username:
@@ -409,7 +412,7 @@ steps:
   - name: build-container-release-dashboard-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./dashboard-service/CI.dockerfile
       context: ./dashboard-service/
       storage_driver: vfs
       username:
@@ -432,7 +435,7 @@ steps:
   - name: build-container-release-ingestor-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./ingestor-service/CI.dockerfile
       context: ./ingestor-service/
       storage_driver: vfs
       username:

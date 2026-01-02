@@ -339,6 +339,8 @@ steps:
       - wget -O ./iqscaffold-billing-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - wget -O ./iqscaffold-gateway-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - ls -a ./iqscaffold-user-service/
+      - ls -a ./iqscaffold-user-service/target/
 
   # ==========================================================================
   # Feature Branch Docker Builds
