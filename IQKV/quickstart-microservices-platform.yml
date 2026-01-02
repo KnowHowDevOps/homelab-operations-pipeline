@@ -335,7 +335,9 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./iqscaffold-user-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./iqscaffold-billing-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
+      - wget -O ./iqscaffold-gateway-service/CI.dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   # ==========================================================================
@@ -353,7 +355,7 @@ steps:
       - package-jar
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./iqscaffold-user-service/CI.dockerfile
       context: ./iqscaffold-user-service/
       storage_driver: vfs
       username:
@@ -374,14 +376,42 @@ steps:
           - "feature/*"
 
   # --------------------------------------------------------------------------
-  # Gateway Service (Feature)
+  # Billing Service (Feature)
   # --------------------------------------------------------------------------
-  - name: build-container-with-feature-for-iqscaffold-gateway-service
+  - name: build-container-with-feature-for-iqscaffold-billing-service
     depends_on:
       - build-container-with-feature-for-iqscaffold-user-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./iqscaffold-billing-service/CI.dockerfile
+      context: ./iqscaffold-billing-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-billing-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_BRANCH:8}
+    when:
+      branch:
+        include:
+          - "feature/*"
+
+  # --------------------------------------------------------------------------
+  # Gateway Service (Feature)
+  # --------------------------------------------------------------------------
+  - name: build-container-with-feature-for-iqscaffold-gateway-service
+    depends_on:
+      - build-container-with-feature-for-iqscaffold-billing-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./iqscaffold-gateway-service/CI.dockerfile
       context: ./iqscaffold-gateway-service/
       storage_driver: vfs
       username:
@@ -417,7 +447,7 @@ steps:
       - package-jar
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./iqscaffold-user-service/CI.dockerfile
       context: ./iqscaffold-user-service/
       storage_driver: vfs
       username:
@@ -437,14 +467,39 @@ steps:
         - "refs/tags/*"
 
   # --------------------------------------------------------------------------
+  # Billing Service (Release)
+  # --------------------------------------------------------------------------
+  - name: build-container-release-iqscaffold-billing-service
+    depends_on:
+      - package-jar
+    image: plugins/docker
+    settings:
+      dockerfile: ./iqscaffold-billing-service/CI.dockerfile
+      context: ./iqscaffold-billing-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-billing-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+      tags:
+        - ${DRONE_TAG} # Version tag (e.g., 1.0.0)
+    when:
+      ref:
+        - "refs/tags/*"
+
+  # --------------------------------------------------------------------------
   # Gateway Service (Release)
   # --------------------------------------------------------------------------
   - name: build-container-release-iqscaffold-gateway-service
-    depends_on:
-      - build-container-release-iqscaffold-user-service
     image: plugins/docker
     settings:
-      dockerfile: ./Dockerfile
+      dockerfile: ./iqscaffold-gateway-service/CI.dockerfile
       context: ./iqscaffold-gateway-service/
       storage_driver: vfs
       username:
