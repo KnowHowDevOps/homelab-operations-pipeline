@@ -287,7 +287,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/words-processing
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/words-processing
       registry: know-how.download
       force_tag: true
       build_args:
@@ -312,7 +312,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/reports-history
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/reports-history
       registry: know-how.download
       force_tag: true
       build_args:
@@ -337,7 +337,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/words-processing
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/words-processing
       registry: know-how.download
       force_tag: true
       build_args:
@@ -362,7 +362,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/reports-history
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/reports-history
       registry: know-how.download
       force_tag: true
       build_args:

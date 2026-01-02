@@ -360,7 +360,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-user-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-user-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -388,7 +388,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-billing-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-billing-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -416,7 +416,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-gateway-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-gateway-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -452,7 +452,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-user-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-user-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -479,7 +479,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-billing-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-billing-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -504,7 +504,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/iqscaffold-gateway-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-gateway-service
       registry: know-how.download
       force_tag: true
       build_args:

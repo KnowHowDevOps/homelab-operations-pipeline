@@ -281,7 +281,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/init-container-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/init-container-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -304,7 +304,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/edge-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/edge-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -327,7 +327,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/dashboard-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/dashboard-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -350,7 +350,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/ingestor-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/ingestor-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -373,7 +373,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/init-container-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/init-container-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -396,7 +396,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/edge-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/edge-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -419,7 +419,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/dashboard-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/dashboard-service
       registry: know-how.download
       force_tag: true
       build_args:
@@ -442,7 +442,7 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}/ingestor-service
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/ingestor-service
       registry: know-how.download
       force_tag: true
       build_args:
