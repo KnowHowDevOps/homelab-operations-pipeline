@@ -31,6 +31,9 @@
     <Match>
         <Bug pattern="VA_FORMAT_STRING_USES_NEWLINE"/>
     </Match>
+    <Match>
+        <Bug pattern="ODR_OPEN_DATABASE_RESOURCE"/>
+    </Match>
 
    <!-- Exclude constructor throw warnings - these are intentional validation in constructors -->
     <Match>
