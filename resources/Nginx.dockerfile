@@ -1,7 +1,6 @@
 ARG BASE_IMAGE
 
-#FROM $BASE_IMAGE
-FROM know-how.download/library/nginx-runner
+FROM $BASE_IMAGE
 
 LABEL maintainer="maintainer@knowhowto.dev"
 ARG VCS_REFERENCE
