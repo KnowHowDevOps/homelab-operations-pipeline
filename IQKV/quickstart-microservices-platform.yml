@@ -7,6 +7,10 @@
 #   3. PublishDockerImage - Container images to registry
 #   4. Deployment        - Helm-based Kubernetes deployments
 #   5. ReleasePackage    - Automated version management
+# 
+# Services: user-service, billing-service, contact-service, lead-service, 
+#           pipeline-service, gateway-service
+# Port Standardization: All services use port 8080 internally
 # ============================================================================
 
 # ============================================================================
@@ -50,7 +54,11 @@ steps:
   # Runs unit tests, integration tests, and measures code coverage
   # Coverage thresholds (JaCoCo):
   #   - user-service: 18% instruction, 48% line, 30% branch
+  #   - billing-service: 25% instruction, 45% line, 28% branch
   #   - gateway-service: 27% instruction
+  #   - contact-service: 20% instruction, 40% line, 25% branch
+  #   - lead-service: 22% instruction, 42% line, 27% branch
+  #   - pipeline-service: 20% instruction, 40% line, 25% branch
   # --------------------------------------------------------------------------
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
@@ -76,7 +84,7 @@ steps:
   # --------------------------------------------------------------------------
   # Performs comprehensive static code analysis:
   #   - SonarQube: Code quality, security vulnerabilities, code smells
-  #   - PMD: Code quality rules for all three services
+  #   - PMD: Code quality rules for all services
   #   - SpotBugs: Bug pattern detection with custom exclusions
   # Quality gate blocks pipeline if thresholds not met
   # --------------------------------------------------------------------------
@@ -108,6 +116,10 @@ steps:
 
       # PMD analysis for each microservice (High priority violations only)
       - pmd check --minimum-priority High -d ./iqscaffold-user-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check --minimum-priority High -d ./iqscaffold-billing-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check --minimum-priority High -d ./iqscaffold-contact-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check --minimum-priority High -d ./iqscaffold-lead-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - pmd check --minimum-priority High -d ./iqscaffold-pipeline-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - pmd check --minimum-priority High -d ./iqscaffold-gateway-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
 
       # SpotBugs analysis with custom exclusions
@@ -290,8 +302,10 @@ steps:
 # ============================================================================
 # Builds and publishes Docker images for all microservices
 # Triggers: Push to feature/* branches and tags
-# Services: user-service, gateway-service
+# Services: user-service, billing-service, contact-service, lead-service,
+#           pipeline-service, gateway-service
 # Image naming: know-how.download/{owner}/{repo}/{service}:{tag}
+# Port Standardization: All services expose port 8080
 # ============================================================================
 kind: pipeline
 name: PublishDockerImage
@@ -342,7 +356,8 @@ steps:
   # Feature Branch Docker Builds
   # ==========================================================================
   # Builds images for feature branches with branch name as tag
-  # Sequential build order: user-service → gateway-service
+  # Sequential build order: user → billing → contact → lead → pipeline → gateway
+  # All services expose port 8080 internally
   # ==========================================================================
 
   # --------------------------------------------------------------------------
@@ -366,6 +381,7 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH:8} # Strips 'feature/' prefix
     when:
@@ -394,6 +410,94 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
+      tags:
+        - ${DRONE_BRANCH:8}
+    when:
+      branch:
+        include:
+          - "feature/*"
+
+  # --------------------------------------------------------------------------
+  # Contact Service (Feature)
+  # --------------------------------------------------------------------------
+  - name: build-container-with-feature-for-iqscaffold-contact-service
+    depends_on:
+      - build-container-with-feature-for-iqscaffold-billing-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-contact-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-contact-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
+      tags:
+        - ${DRONE_BRANCH:8}
+    when:
+      branch:
+        include:
+          - "feature/*"
+
+  # --------------------------------------------------------------------------
+  # Lead Service (Feature)
+  # --------------------------------------------------------------------------
+  - name: build-container-with-feature-for-iqscaffold-lead-service
+    depends_on:
+      - build-container-with-feature-for-iqscaffold-contact-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-lead-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-lead-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
+      tags:
+        - ${DRONE_BRANCH:8}
+    when:
+      branch:
+        include:
+          - "feature/*"
+
+  # --------------------------------------------------------------------------
+  # Pipeline Service (Feature)
+  # --------------------------------------------------------------------------
+  - name: build-container-with-feature-for-iqscaffold-pipeline-service
+    depends_on:
+      - build-container-with-feature-for-iqscaffold-lead-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-pipeline-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-pipeline-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH:8}
     when:
@@ -406,7 +510,7 @@ steps:
   # --------------------------------------------------------------------------
   - name: build-container-with-feature-for-iqscaffold-gateway-service
     depends_on:
-      - build-container-with-feature-for-iqscaffold-billing-service
+      - build-container-with-feature-for-iqscaffold-pipeline-service
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
@@ -422,6 +526,7 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH:8}
     when:
@@ -429,12 +534,12 @@ steps:
         include:
           - "feature/*"
 
-
   # ==========================================================================
   # Release Docker Builds
   # ==========================================================================
   # Builds images for tagged releases with version tag
-  # Sequential build order: user-service → gateway-service
+  # Sequential build order: user → billing → contact → lead → pipeline → gateway
+  # All services expose port 8080 internally
   # ==========================================================================
 
   # --------------------------------------------------------------------------
@@ -458,6 +563,7 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_TAG} # Version tag (e.g., 1.0.0)
     when:
@@ -469,7 +575,7 @@ steps:
   # --------------------------------------------------------------------------
   - name: build-container-release-iqscaffold-billing-service
     depends_on:
-      - package-jar
+      - build-container-release-iqscaffold-user-service
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
@@ -485,8 +591,93 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
       tags:
-        - ${DRONE_TAG} # Version tag (e.g., 1.0.0)
+        - ${DRONE_TAG}
+    when:
+      ref:
+        - "refs/tags/*"
+
+  # --------------------------------------------------------------------------
+  # Contact Service (Release)
+  # --------------------------------------------------------------------------
+  - name: build-container-release-iqscaffold-contact-service
+    depends_on:
+      - build-container-release-iqscaffold-billing-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-contact-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-contact-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
+      tags:
+        - ${DRONE_TAG}
+    when:
+      ref:
+        - "refs/tags/*"
+
+  # --------------------------------------------------------------------------
+  # Lead Service (Release)
+  # --------------------------------------------------------------------------
+  - name: build-container-release-iqscaffold-lead-service
+    depends_on:
+      - build-container-release-iqscaffold-contact-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-lead-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-lead-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
+      tags:
+        - ${DRONE_TAG}
+    when:
+      ref:
+        - "refs/tags/*"
+
+  # --------------------------------------------------------------------------
+  # Pipeline Service (Release)
+  # --------------------------------------------------------------------------
+  - name: build-container-release-iqscaffold-pipeline-service
+    depends_on:
+      - build-container-release-iqscaffold-lead-service
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./iqscaffold-pipeline-service/
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/iqscaffold-pipeline-service
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/jre-runner
+        - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
+      tags:
+        - ${DRONE_TAG}
     when:
       ref:
         - "refs/tags/*"
@@ -495,6 +686,8 @@ steps:
   # Gateway Service (Release)
   # --------------------------------------------------------------------------
   - name: build-container-release-iqscaffold-gateway-service
+    depends_on:
+      - build-container-release-iqscaffold-pipeline-service
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
@@ -510,6 +703,7 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
+        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_TAG}
     when:
@@ -523,6 +717,7 @@ steps:
 # Deploys feature branches to test environment
 # Trigger: Manual promotion event with target=test
 # Deployment: Helm-based with atomic rollback on failure
+# All services deployed with port 8080 configuration
 # ============================================================================
 kind: pipeline
 name: PromoteFeatureDeployment
@@ -540,6 +735,7 @@ steps:
   # Deploy to Test Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
+  # Deploys all microservices with standardized port 8080
   # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
@@ -550,7 +746,7 @@ steps:
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqscaffold-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -611,6 +807,7 @@ steps:
 # Deploys tagged releases to staging or production environments
 # Trigger: Manual promotion event with target=staging|production
 # Deployment: Helm-based with atomic rollback on failure
+# All services deployed with port 8080 configuration
 # ============================================================================
 kind: pipeline
 name: PromoteDeployment
@@ -630,6 +827,7 @@ steps:
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
   # Image tag is the version tag (e.g., 1.0.0)
+  # All services use standardized port 8080
   # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
@@ -640,7 +838,7 @@ steps:
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqscaffold-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification
