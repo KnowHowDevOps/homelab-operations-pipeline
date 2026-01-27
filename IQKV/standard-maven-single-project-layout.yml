@@ -85,7 +85,7 @@ steps:
   # Performs comprehensive static code analysis:
   #   - SonarQube: Code quality, security vulnerabilities, code smells
   #   - PMD: Code quality rules with High priority violations only
-  #   - SpotBugs: Bug pattern detection (currently commented out)
+  #   - SpotBugs: Bug pattern detection
   # Quality gate blocks pipeline if thresholds not met
   # --------------------------------------------------------------------------
   - name: static-analysis-gate
@@ -117,8 +117,8 @@ steps:
       # PMD analysis (High priority violations only)
       - pmd check --minimum-priority High -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       
-      # SpotBugs analysis with custom exclusions (currently disabled)
-      # - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
+      # SpotBugs analysis with custom exclusions
+      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   # --------------------------------------------------------------------------
   # Step 3: Slack Notification (Failure Only)
