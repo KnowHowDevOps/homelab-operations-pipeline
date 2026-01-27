@@ -1,3 +1,19 @@
+# ============================================================================
+# Service Template - Drone CI/CD Pipeline
+# ============================================================================
+# Pipeline Flow:
+#   1. VerifyCode        - Code quality, tests, and static analysis
+#   2. PublishArtifacts  - Maven artifacts to Nexus repository
+#   3. ReleasePackage    - Automated version management
+# ============================================================================
+
+# ============================================================================
+# Pipeline 1: VerifyCode
+# ============================================================================
+# Validates code quality, runs tests, and performs static analysis
+# Triggers: Push to dev, feature/*, rfc/*, poc/*, bugfix/*, improvement/*,
+#          prerelease/*, library/*, hotfix/*, *.*.x branches and tags
+# ============================================================================
 kind: pipeline
 name: VerifyCode
 type: docker
@@ -8,18 +24,19 @@ trigger:
     - tag
   ref:
     include:
-      - refs/heads/dev
-      - refs/heads/feature/*
-      - refs/heads/rfc/*
-      - refs/heads/poc/*
-      - refs/heads/bugfix/*
-      - refs/heads/improvement/*
-      - refs/heads/prerelease/*
-      - refs/heads/library/*
-      - refs/heads/hotfix/*
-      - refs/heads/*.*.x
-      - refs/tags/*
+      - refs/heads/dev # Main development branch
+      - refs/heads/feature/* # Feature branches
+      - refs/heads/rfc/* # Request for comments branches
+      - refs/heads/poc/* # Proof of concept branches
+      - refs/heads/bugfix/* # Bug fix branches
+      - refs/heads/improvement/* # Enhancement branches
+      - refs/heads/prerelease/* # Release candidate branches
+      - refs/heads/library/* # Library development branches
+      - refs/heads/hotfix/* # Production hotfix branches
+      - refs/heads/*.*.x # Maintenance branches
+      - refs/tags/* # Version tags
 
+# Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
     host:
@@ -32,6 +49,13 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
+  # --------------------------------------------------------------------------
+  # Step 1: Code Coverage Gate
+  # --------------------------------------------------------------------------
+  # Runs unit tests, integration tests, and measures code coverage
+  # Includes frontend linting with pnpm and Maven dependency resolution
+  # Skips Javadoc generation for faster execution
+  # --------------------------------------------------------------------------
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
     pull: never
@@ -44,12 +68,21 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - javac -version
-      - mvn -version
-      - pnpm install && pnpm lint
-      - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-      - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - javac -version # Display Java compiler version
+      - mvn -version # Display Maven version
+      - pnpm install && pnpm lint # Install dependencies and run frontend linting
+      - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Resolve and update dependencies
+      - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Run tests and verify build
 
+  # --------------------------------------------------------------------------
+  # Step 2: Static Analysis Gate
+  # --------------------------------------------------------------------------
+  # Performs comprehensive static code analysis:
+  #   - SonarQube: Code quality, security vulnerabilities, code smells
+  #   - PMD: Code quality rules with High priority violations only
+  #   - SpotBugs: Bug pattern detection (currently commented out)
+  # Quality gate blocks pipeline if thresholds not met
+  # --------------------------------------------------------------------------
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
@@ -70,11 +103,24 @@ steps:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
     commands:
+      # Copy dependencies for SonarQube analysis
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      
+      # SonarQube analysis with quality gate (blocks on failure)
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.2.0.4988:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      
+      # PMD analysis (High priority violations only)
       - pmd check --minimum-priority High -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      
+      # SpotBugs analysis with custom exclusions (currently disabled)
       # - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
+  # --------------------------------------------------------------------------
+  # Step 3: Slack Notification (Failure Only)
+  # --------------------------------------------------------------------------
+  # Notifies team in Slack when verification fails
+  # Uses red circle and thunder cloud emoji for failure indication
+  # --------------------------------------------------------------------------
   - name: notify-slack-on-failure
     image: plugins/slack
     settings:
@@ -91,6 +137,16 @@ steps:
       - static-analysis-gate
 
 ---
+# ============================================================================
+# Pipeline 2: PublishArtifacts
+# ============================================================================
+# Publishes Maven artifacts to Nexus repository
+# Triggers: Push to dev, prerelease/*, *.*.x branches and tags
+# Artifacts:
+#   - SNAPSHOT JARs (dev, prerelease, maintenance branches)
+#   - Release JARs (tags only)
+#   - GitHub releases with changelog (tags only)
+# ============================================================================
 kind: pipeline
 name: PublishArtifacts
 type: docker
@@ -100,14 +156,15 @@ trigger:
     - push
     - tag
   ref:
-    - refs/heads/dev
-    - refs/heads/prerelease/*
-    - refs/heads/*.*.x
-    - refs/tags/*
+    - refs/heads/dev # Main development branch
+    - refs/heads/prerelease/* # Release candidate branches
+    - refs/heads/*.*.x # Maintenance branches
+    - refs/tags/* # Version tags
 
 depends_on:
-  - VerifyCode
+  - VerifyCode # Only runs if code verification passes
 
+# Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
     host:
@@ -117,6 +174,13 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
+  # --------------------------------------------------------------------------
+  # Step 1: Publish SNAPSHOT JAR
+  # --------------------------------------------------------------------------
+  # Deploys SNAPSHOT artifacts to Nexus for dev/prerelease/maintenance branches
+  # Skips tests as they already passed in VerifyCode pipeline
+  # Skips Javadoc and Checkstyle for faster deployment
+  # --------------------------------------------------------------------------
   - name: publish-snapshot-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -137,6 +201,12 @@ steps:
           - "prerelease/*"
           - "*.*.x"
 
+  # --------------------------------------------------------------------------
+  # Step 2: Publish Release JAR
+  # --------------------------------------------------------------------------
+  # Deploys release artifacts to Nexus for tagged versions
+  # Uses releases repository instead of snapshots
+  # --------------------------------------------------------------------------
   - name: publish-release-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -154,6 +224,13 @@ steps:
       ref:
         - "refs/tags/*"
 
+  # --------------------------------------------------------------------------
+  # Step 3: Create GitHub Release
+  # --------------------------------------------------------------------------
+  # Generates GitHub release with changelog using release-it
+  # Only runs for tagged versions after successful JAR publication
+  # Downloads release configuration from central repository
+  # --------------------------------------------------------------------------
   - name: create-github-release
     depends_on:
       - publish-release-jar
@@ -168,16 +245,22 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
-      - git checkout -b release
-      - pnpm install && git config --unset core.hooksPath
-      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json
-      - git fetch --tags
-      - release-it --ci --no-increment -VV
-      - git status
+      - git checkout -b release # Create temporary release branch
+      - pnpm install && git config --unset core.hooksPath # Install dependencies and disable git hooks
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json # Download release configuration
+      - git fetch --tags # Ensure all tags are available
+      - release-it --ci --no-increment -VV # Generate release with verbose output
+      - git status # Show final git status
     when:
       ref:
         - "refs/tags/*"
 
+  # --------------------------------------------------------------------------
+  # Step 4: Slack Notification
+  # --------------------------------------------------------------------------
+  # Notifies team of artifact publication success/failure
+  # Shows different messages and emojis based on build status
+  # --------------------------------------------------------------------------
   - name: notify-slack
     image: plugins/slack
     settings:
@@ -200,18 +283,31 @@ steps:
       - publish-release-jar
 
 ---
+# ============================================================================
+# Pipeline 3: ReleasePackage
+# ============================================================================
+# Automates version management and release creation
+# Trigger: Manual promotion event with target=release
+# Process:
+#   1. Extracts version from package.json
+#   2. Updates Maven POMs to release version
+#   3. Creates and pushes version tag
+#   4. Bumps to next SNAPSHOT version
+#   5. Generates changelog and commits
+# ============================================================================
 kind: pipeline
 name: ReleasePackage
 type: docker
 trigger:
   event:
-    - promote
+    - promote # Manual trigger only
   target:
     - release
   branch:
-    - "dev"
-    - "*.*.x"
+    - "dev" # Main development branch
+    - "*.*.x" # Maintenance branches
 
+# Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
     host:
@@ -221,6 +317,17 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
+  # --------------------------------------------------------------------------
+  # Create Release Tag and Bump Version
+  # --------------------------------------------------------------------------
+  # Automated release workflow:
+  #   1. Extract version from package.json and remove SNAPSHOT
+  #   2. Create and push release tag
+  #   3. Bump to next SNAPSHOT version
+  #   4. Generate changelog with release-it
+  #   5. Commit and push changes
+  # Failure is ignored to allow re-running if release already exists
+  # --------------------------------------------------------------------------
   - name: create-release-tag
     failure: ignore
     image: cicdtools/pipeline-runner
@@ -232,35 +339,44 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
+      # Extract and prepare version numbers
       - export RELEASE_VERSION=$(jq -r .version package.json | cut -d '-' -f 1)
       - export INCREMENT_COMMAND="increment_version -m $${RELEASE_VERSION}"
       - export SNAPSHOT_VERSION=$($${INCREMENT_COMMAND})
       - echo Prepare new version $${RELEASE_VERSION}
       - export NEXT_SNAPSHOT=$${SNAPSHOT_VERSION}-SNAPSHOT
+      
+      # Configure Git identity for commits
       - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_AUTHOR_EMAIL="$${SVC_BUILD_GIT_EMAIL}"
       - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
       - git remote set-url --push origin ${DRONE_GIT_SSH_URL}
+      
+      # Create release version and tag
       - git checkout -b v$${RELEASE_VERSION}
-      - mvn versions:set -DremoveSnapshot
-      - mvn versions:set -DnewVersion=$${RELEASE_VERSION}
-      - mvn versions:update-parent
+      - mvn versions:set -DremoveSnapshot # Remove SNAPSHOT from version
+      - mvn versions:set -DnewVersion=$${RELEASE_VERSION} # Set release version
+      - mvn versions:update-parent # Update parent version references
       - >-
         git commit -a -m "chore: bump v$${RELEASE_VERSION}"
-      - git tag $${RELEASE_VERSION} && git push origin $${RELEASE_VERSION}
+      - git tag $${RELEASE_VERSION} && git push origin $${RELEASE_VERSION} # Create and push tag
       - echo "✅ Release tag $${RELEASE_VERSION} was created."
       - sleep 10
+      
+      # Cleanup and prepare next SNAPSHOT version
       - git tag -d $${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v$${RELEASE_VERSION}
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT}
-      - mvn versions:update-parent -DallowSnapshots=true
+      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} # Set next SNAPSHOT version
+      - mvn versions:update-parent -DallowSnapshots=true # Allow SNAPSHOT parent versions
+      
+      # Generate changelog and commit
       - pnpm install && git config --unset core.hooksPath
-      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json
-      - git fetch --tags
-      - release-it --ci --no-increment -VV
-      - npm version $${SNAPSHOT_VERSION} --no-git-tag-version
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json # Download changelog configuration
+      - git fetch --tags # Ensure all tags are available
+      - release-it --ci --no-increment -VV # Generate changelog with verbose output
+      - npm version $${SNAPSHOT_VERSION} --no-git-tag-version # Update package.json version
       - >-
         git commit -a -m "chore: create new $${NEXT_SNAPSHOT}"
-      - git push origin ${DRONE_COMMIT_BRANCH}
+      - git push origin ${DRONE_COMMIT_BRANCH} # Push changes to main branch
       - echo "✅ Started $${NEXT_SNAPSHOT}."
       - echo "🚀 Good job, new version $${RELEASE_VERSION} was released successfully."
