@@ -74,6 +74,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
+      - git submodule update --init --recursive
       - javac -version
       - mvn -version
       - pnpm install && pnpm lint # Frontend linting
@@ -210,6 +211,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
+      - git submodule update --init --recursive
       - mvn deploy -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -DaltDeploymentRepository=kh-contrib-snapshots-repo::https://know-how.nexus/repository/maven-snapshots
     when:
       branch:
@@ -349,6 +351,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
+      - git submodule update --init --recursive
       - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
@@ -744,6 +747,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
+      - git submodule update --init --recursive
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env
@@ -797,6 +801,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
+      - git submodule update --init --recursive
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env
 
@@ -836,6 +841,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
+      - git submodule update --init --recursive
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env
@@ -890,6 +896,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
+      - git submodule update --init --recursive
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env
 
