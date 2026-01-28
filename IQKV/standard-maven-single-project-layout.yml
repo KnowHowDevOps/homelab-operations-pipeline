@@ -412,7 +412,6 @@ steps:
 # Deploys feature branches to test environment
 # Trigger: Manual promotion event with target=test
 # Deployment: Helm-based with atomic rollback on failure
-# Service deployed with port 8080 configuration
 # ============================================================================
 kind: pipeline
 name: PromoteFeatureDeployment
@@ -441,7 +440,7 @@ steps:
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -510,7 +509,6 @@ steps:
 # Deploys tagged releases to staging or production environments
 # Trigger: Manual promotion event with target=staging|production
 # Deployment: Helm-based with atomic rollback on failure
-# Service deployed with port 8080 configuration
 # ============================================================================
 kind: pipeline
 name: PromoteDeployment
@@ -541,7 +539,7 @@ steps:
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
   # --------------------------------------------------------------------------
   # Slack Notification

@@ -7,8 +7,8 @@
 #   3. PublishDockerImage - Container images to registry
 #   4. Deployment        - Helm-based Kubernetes deployments
 #   5. ReleasePackage    - Automated version management
-# 
-# Services: user-service, billing-service, contact-service, lead-service, 
+#
+# Services: user-service, billing-service, contact-service, lead-service,
 #           pipeline-service, gateway-service
 # Port Standardization: All services use port 8080 internally
 # ============================================================================
@@ -750,7 +750,7 @@ steps:
       - git submodule update --init --recursive
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqscaffold-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -844,7 +844,7 @@ steps:
       - git submodule update --init --recursive
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} --set service.port=8080 --set service.targetPort=8080 -n iqscaffold-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqscaffold-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification
