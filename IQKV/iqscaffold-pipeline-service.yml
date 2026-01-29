@@ -6,7 +6,7 @@
 #   2. PublishArtifacts                 - Maven artifacts to Nexus repository
 #   3. PublishDockerImage               - Container images to registry
 #   4. DeployWorkInProgressOnDev        - Wip branch deployments to dev environment
-#   5. RollbackWorkInProgressDeployment - Rollback wip deployments
+#   5. RollbackWorkInProgressOnDev      - Rollback wip deployments
 #   6. PromoteFeatureDeployment         - Feature branch deployments to test environment
 #   7. RollbackFeatureDeployment        - Rollback feature deployments
 #   8. PromoteDeployment                - Release deployments to staging/production
@@ -504,14 +504,14 @@ steps:
 
 ---
 # ============================================================================
-# Pipeline 5: RollbackWorkInProgressDeployment
+# Pipeline 5: RollbackWorkInProgressOnDev
 # ============================================================================
 # Rolls back wip branch deployment from test environment
 # Trigger: Manual rollback event with target=test
 # Uses Helm uninstall to completely remove the deployment
 # ============================================================================
 kind: pipeline
-name: RollbackWorkInProgressDeployment
+name: RollbackWorkInProgressOnDev
 type: docker
 trigger:
   event:
