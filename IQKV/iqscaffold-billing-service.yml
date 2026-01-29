@@ -506,8 +506,8 @@ steps:
 # ============================================================================
 # Pipeline 5: RollbackWorkInProgressOnDev
 # ============================================================================
-# Rolls back wip branch deployment from test environment
-# Trigger: Manual rollback event with target=test
+# Rolls back wip branch deployment from dev environment
+# Trigger: Manual rollback event with target=dev
 # Uses Helm uninstall to completely remove the deployment
 # ============================================================================
 kind: pipeline
@@ -517,13 +517,13 @@ trigger:
   event:
     - rollback # Manual trigger only
   target:
-    - test
+    - dev
   ref:
     - "refs/heads/wip"
 
 steps:
   # --------------------------------------------------------------------------
-  # Rollback from Test Environment
+  # Rollback from Dev Environment
   # --------------------------------------------------------------------------
   # Uses Helm uninstall to completely remove the wip deployment
   # --------------------------------------------------------------------------
