@@ -472,10 +472,14 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
+      INFRA_DATABASE_PASSWORD:
+        from_secret: INFRA_DATABASE_PASSWORD
+      INFRA_MESSAGING_PASSWORD:
+        from_secret: INFRA_MESSAGING_PASSWORD
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./dev-values.yaml --set image.tag=${DRONE_BRANCH} -n iqscaffold-dev-env # Deploy with Helm
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-dev.yaml --set image.tag=${DRONE_BRANCH} --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} -n iqscaffold-dev-env # Deploy with Helm
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -568,10 +572,14 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
+      INFRA_DATABASE_PASSWORD:
+        from_secret: INFRA_DATABASE_PASSWORD
+      INFRA_MESSAGING_PASSWORD:
+        from_secret: INFRA_MESSAGING_PASSWORD
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-${DRONE_DEPLOY_TO}.yaml --set image.tag=${DRONE_BRANCH:8} --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -667,10 +675,14 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
+      INFRA_DATABASE_PASSWORD:
+        from_secret: INFRA_DATABASE_PASSWORD
+      INFRA_MESSAGING_PASSWORD:
+        from_secret: INFRA_MESSAGING_PASSWORD
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-${DRONE_DEPLOY_TO}.yaml --set image.tag=${DRONE_TAG} --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
   # --------------------------------------------------------------------------
   # Slack Notification
