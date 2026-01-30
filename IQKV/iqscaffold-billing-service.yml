@@ -477,6 +477,10 @@ steps:
         from_secret: INFRA_DATABASE_PASSWORD
       INFRA_MESSAGING_PASSWORD:
         from_secret: INFRA_MESSAGING_PASSWORD
+      STRIPE_SECRET_KEY:
+        from_secret: STRIPE_SECRET_KEY
+      STRIPE_WEBHOOK_SECRET:
+        from_secret: STRIPE_WEBHOOK_SECRET
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -488,6 +492,8 @@ steps:
           --set image.tag=${DRONE_BRANCH} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
           --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set config.billing.stripe.secretKey=${STRIPE_SECRET_KEY} \
+          --set config.billing.stripe.webhookSecret=${STRIPE_WEBHOOK_SECRET} \
           --namespace iqscaffold-dev-env \
           --create-namespace
 
@@ -587,6 +593,10 @@ steps:
         from_secret: INFRA_DATABASE_PASSWORD
       INFRA_MESSAGING_PASSWORD:
         from_secret: INFRA_MESSAGING_PASSWORD
+      STRIPE_SECRET_KEY:
+        from_secret: STRIPE_SECRET_KEY
+      STRIPE_WEBHOOK_SECRET:
+        from_secret: STRIPE_WEBHOOK_SECRET
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -597,6 +607,11 @@ steps:
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set config.billing.stripe.secretKey=${STRIPE_SECRET_KEY} \
+          --set config.billing.stripe.webhookSecret=${STRIPE_WEBHOOK_SECRET} \
+          --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
+          --create-namespace
           --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
@@ -700,6 +715,10 @@ steps:
         from_secret: INFRA_DATABASE_PASSWORD
       INFRA_MESSAGING_PASSWORD:
         from_secret: INFRA_MESSAGING_PASSWORD
+      STRIPE_SECRET_KEY:
+        from_secret: STRIPE_SECRET_KEY
+      STRIPE_WEBHOOK_SECRET:
+        from_secret: STRIPE_WEBHOOK_SECRET
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -711,6 +730,8 @@ steps:
           --set image.tag=${DRONE_TAG} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
           --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set config.billing.stripe.secretKey=${STRIPE_SECRET_KEY} \
+          --set config.billing.stripe.webhookSecret=${STRIPE_WEBHOOK_SECRET} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
