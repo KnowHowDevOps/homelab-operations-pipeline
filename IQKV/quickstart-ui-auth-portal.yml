@@ -240,7 +240,7 @@ steps:
   # --------------------------------------------------------------------------
   - name: download-dockerfile
     image: cicdtools/pipeline-runner
-    pull: if-not-exists
+    pull: never
     commands:
       - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/Nginx.dockerfile # Download Nginx Dockerfile template
 
@@ -286,6 +286,8 @@ steps:
         - SOURCE_DIR=./dist/
       tags:
         - ${DRONE_BRANCH} # Use branch name as tag
+    depends_on:
+      - build-application
 
   # --------------------------------------------------------------------------
   # Step 4: Deploy to Dev Environment
@@ -308,6 +310,8 @@ steps:
           --values ./values-dev.yaml \
           --namespace iqscaffold-dev-env \
           --create-namespace
+    depends_on:
+      - build-container
 
   # --------------------------------------------------------------------------
   # Step 5: Slack Notification
