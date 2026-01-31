@@ -259,6 +259,7 @@ steps:
     commands:
       - pnpm install # Install dependencies
       - pnpm build # Build production artifacts
+      - ls -la ./dist/
 
   # --------------------------------------------------------------------------
   # Step 3: Build Container Image
