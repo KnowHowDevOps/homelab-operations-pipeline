@@ -82,8 +82,8 @@ steps:
       - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
       - git config user.name "$${SVC_BUILD_GIT_USERNAME}"
       - git config user.email $${SVC_BUILD_GIT_EMAIL}
-      - npm unpublish -f @iqscaffold/sample-ui-billing-api-integration@0.0.0
-      - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks
+      - npm unpublish -f @iqscaffold/sample-ui-billing-api-integration@0.0.0 || true
+      - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks || true
     when:
       branch:
         include:
