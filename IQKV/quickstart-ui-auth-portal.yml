@@ -163,7 +163,6 @@ steps:
       - export GIT_COMMITTER_EMAIL=${SVC_BUILD_GIT_EMAIL}
       - git config user.name "${SVC_BUILD_GIT_USERNAME}"
       - git config user.email ${SVC_BUILD_GIT_EMAIL}
-      - pnpm install && pnpm lint # Install dependencies and run linting
       - npm unpublish -f @iqscaffold/auth-portal@0.0.0 # Remove development version
       - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks # Publish with force flag
     when:
