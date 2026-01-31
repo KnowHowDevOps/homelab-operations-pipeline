@@ -308,6 +308,7 @@ steps:
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-dev.yaml \
+          --set image.tag=${DRONE_BRANCH} \
           --namespace iqscaffold-dev-env \
           --create-namespace
     depends_on:
