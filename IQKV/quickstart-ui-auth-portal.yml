@@ -281,8 +281,8 @@ steps:
       force_tag: true
       build_args:
         - BASE_IMAGE=know-how.download/library/nginx-runner
-        - VCS_REFERENCE=${DRONE_COMMIT} # Git commit hash for traceability
-        - SOURCE_DIR=./dist # Built application directory
+        - VCS_REFERENCE=${DRONE_COMMIT}
+        - SOURCE_DIR=./dist
       tags:
         - ${DRONE_BRANCH} # Use branch name as tag
 
@@ -299,10 +299,9 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - kubectl version --output=yaml # Display Kubernetes version for debugging
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME}
+      - kubectl version --output=yaml
       - |
-        # Deploy with atomic rollback on failure
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-dev.yaml \
