@@ -438,7 +438,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
@@ -499,7 +499,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---
@@ -537,7 +537,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
@@ -599,7 +599,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---

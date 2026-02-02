@@ -477,7 +477,7 @@ steps:
       INFRA_MESSAGING_PASSWORD:
         from_secret: INFRA_MESSAGING_PASSWORD
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-dev-env # Uninstall deployment
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-dev.yaml --set image.tag=${DRONE_BRANCH} --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} -n iqscaffold-dev-env # Deploy with Helm
@@ -539,7 +539,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-dev-env # Uninstall deployment
 
 ---
@@ -578,7 +578,7 @@ steps:
       INFRA_MESSAGING_PASSWORD:
         from_secret: INFRA_MESSAGING_PASSWORD
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-${DRONE_DEPLOY_TO}.yaml --set image.tag=${DRONE_BRANCH:8} --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
@@ -639,7 +639,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---
@@ -681,7 +681,7 @@ steps:
       INFRA_MESSAGING_PASSWORD:
         from_secret: INFRA_MESSAGING_PASSWORD
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-${DRONE_DEPLOY_TO}.yaml --set image.tag=${DRONE_TAG} --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Deploy with Helm
 
@@ -743,7 +743,7 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/IQKV/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---
