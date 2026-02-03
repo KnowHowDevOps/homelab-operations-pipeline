@@ -475,8 +475,8 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_DATABASE_PASSWORD:
         from_secret: INFRA_DATABASE_PASSWORD
-      INFRA_MESSAGING_PASSWORD:
-        from_secret: INFRA_MESSAGING_PASSWORD
+      INFRA_RABBITMQ_PASSWORD:
+        from_secret: INFRA_RABBITMQ_PASSWORD
       STRIPE_SECRET_KEY:
         from_secret: STRIPE_SECRET_KEY
       STRIPE_WEBHOOK_SECRET:
@@ -492,7 +492,7 @@ steps:
           --values ./values-dev.yaml \
           --set image.tag=${DRONE_BRANCH} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --set config.billing.stripe.secretKey=${STRIPE_SECRET_KEY} \
           --set config.billing.stripe.webhookSecret=${STRIPE_WEBHOOK_SECRET} \
           --namespace iqscaffold-dev-env \
@@ -592,8 +592,8 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_DATABASE_PASSWORD:
         from_secret: INFRA_DATABASE_PASSWORD
-      INFRA_MESSAGING_PASSWORD:
-        from_secret: INFRA_MESSAGING_PASSWORD
+      INFRA_RABBITMQ_PASSWORD:
+        from_secret: INFRA_RABBITMQ_PASSWORD
       STRIPE_SECRET_KEY:
         from_secret: STRIPE_SECRET_KEY
       STRIPE_WEBHOOK_SECRET:
@@ -608,12 +608,12 @@ steps:
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --set config.billing.stripe.secretKey=${STRIPE_SECRET_KEY} \
           --set config.billing.stripe.webhookSecret=${STRIPE_WEBHOOK_SECRET} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
-          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
@@ -714,8 +714,8 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_DATABASE_PASSWORD:
         from_secret: INFRA_DATABASE_PASSWORD
-      INFRA_MESSAGING_PASSWORD:
-        from_secret: INFRA_MESSAGING_PASSWORD
+      INFRA_RABBITMQ_PASSWORD:
+        from_secret: INFRA_RABBITMQ_PASSWORD
       STRIPE_SECRET_KEY:
         from_secret: STRIPE_SECRET_KEY
       STRIPE_WEBHOOK_SECRET:
@@ -730,7 +730,7 @@ steps:
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --set config.billing.stripe.secretKey=${STRIPE_SECRET_KEY} \
           --set config.billing.stripe.webhookSecret=${STRIPE_WEBHOOK_SECRET} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \

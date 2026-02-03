@@ -475,8 +475,8 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_DATABASE_PASSWORD:
         from_secret: INFRA_DATABASE_PASSWORD
-      INFRA_MESSAGING_PASSWORD:
-        from_secret: INFRA_MESSAGING_PASSWORD
+      INFRA_RABBITMQ_PASSWORD:
+        from_secret: INFRA_RABBITMQ_PASSWORD
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -487,7 +487,7 @@ steps:
           --values ./values-dev.yaml \
           --set image.tag=${DRONE_BRANCH} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --namespace iqscaffold-dev-env \
           --create-namespace
 
@@ -585,8 +585,8 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_DATABASE_PASSWORD:
         from_secret: INFRA_DATABASE_PASSWORD
-      INFRA_MESSAGING_PASSWORD:
-        from_secret: INFRA_MESSAGING_PASSWORD
+      INFRA_RABBITMQ_PASSWORD:
+        from_secret: INFRA_RABBITMQ_PASSWORD
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -597,7 +597,7 @@ steps:
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
@@ -698,8 +698,8 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_DATABASE_PASSWORD:
         from_secret: INFRA_DATABASE_PASSWORD
-      INFRA_MESSAGING_PASSWORD:
-        from_secret: INFRA_MESSAGING_PASSWORD
+      INFRA_RABBITMQ_PASSWORD:
+        from_secret: INFRA_RABBITMQ_PASSWORD
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -710,7 +710,7 @@ steps:
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
           --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_MESSAGING_PASSWORD} \
+          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
