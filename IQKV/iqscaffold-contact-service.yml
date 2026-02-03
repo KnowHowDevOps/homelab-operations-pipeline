@@ -473,8 +473,8 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
-      INFRA_DATABASE_PASSWORD:
-        from_secret: INFRA_DATABASE_PASSWORD
+      INFRA_POSTGRESQL_PASSWORD:
+        from_secret: INFRA_POSTGRESQL_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
     commands:
@@ -487,8 +487,8 @@ steps:
           --values ./values.yaml \
           --values ./values-dev.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --namespace iqscaffold-dev-env \
           --create-namespace
 
@@ -584,8 +584,8 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
-      INFRA_DATABASE_PASSWORD:
-        from_secret: INFRA_DATABASE_PASSWORD
+      INFRA_POSTGRESQL_PASSWORD:
+        from_secret: INFRA_POSTGRESQL_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
     commands:
@@ -597,8 +597,8 @@ steps:
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
-          --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
@@ -697,8 +697,8 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
-      INFRA_DATABASE_PASSWORD:
-        from_secret: INFRA_DATABASE_PASSWORD
+      INFRA_POSTGRESQL_PASSWORD:
+        from_secret: INFRA_POSTGRESQL_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
     commands:
@@ -710,8 +710,8 @@ steps:
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
-          --set externalServices.postgresql.password=${INFRA_DATABASE_PASSWORD} \
-          --set externalServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
