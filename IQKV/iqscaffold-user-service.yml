@@ -475,10 +475,24 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_POSTGRESQL_PASSWORD:
         from_secret: INFRA_POSTGRESQL_PASSWORD
+      INFRA_REDIS_PASSWORD:
+        from_secret: INFRA_REDIS_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
+      INFRA_S3_ACCESS_KEY:
+        from_secret: INFRA_S3_ACCESS_KEY
+      INFRA_S3_SECRET_KEY:
+        from_secret: INFRA_S3_SECRET_KEY
       JWT_SECRET_KEY:
         from_secret: JWT_SECRET_KEY
+      GOOGLE_OAUTH2_CLIENT_ID:
+        from_secret: GOOGLE_OAUTH2_CLIENT_ID
+      GOOGLE_OAUTH2_CLIENT_SECRET:
+        from_secret: GOOGLE_OAUTH2_CLIENT_SECRET
+      SMTP_USERNAME:
+        from_secret: SMTP_USERNAME
+      SMTP_PASSWORD:
+        from_secret: SMTP_PASSWORD
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -489,8 +503,15 @@ steps:
           --values ./values-dev.yaml \
           --set image.tag=${DRONE_BRANCH} \
           --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set infraServices.s3.accessKey=${INFRA_S3_ACCESS_KEY} \
+          --set infraServices.s3.secretKey=${INFRA_S3_SECRET_KEY} \
           --set config.jwt.secretKey=${JWT_SECRET_KEY} \
+          --set config.oauth2.google.clientId=${GOOGLE_OAUTH2_CLIENT_ID} \
+          --set config.oauth2.google.clientSecret=${GOOGLE_OAUTH2_CLIENT_SECRET} \
+          --set config.email.smtp.username=${SMTP_USERNAME} \
+          --set config.email.smtp.password=${SMTP_PASSWORD} \
           --namespace iqscaffold-dev-env \
           --create-namespace
 
@@ -588,10 +609,24 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_POSTGRESQL_PASSWORD:
         from_secret: INFRA_POSTGRESQL_PASSWORD
+      INFRA_REDIS_PASSWORD:
+        from_secret: INFRA_REDIS_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
+      INFRA_S3_ACCESS_KEY:
+        from_secret: INFRA_S3_ACCESS_KEY
+      INFRA_S3_SECRET_KEY:
+        from_secret: INFRA_S3_SECRET_KEY
       JWT_SECRET_KEY:
         from_secret: JWT_SECRET_KEY
+      GOOGLE_OAUTH2_CLIENT_ID:
+        from_secret: GOOGLE_OAUTH2_CLIENT_ID
+      GOOGLE_OAUTH2_CLIENT_SECRET:
+        from_secret: GOOGLE_OAUTH2_CLIENT_SECRET
+      SMTP_USERNAME:
+        from_secret: SMTP_USERNAME
+      SMTP_PASSWORD:
+        from_secret: SMTP_PASSWORD
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -602,8 +637,15 @@ steps:
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
           --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set infraServices.s3.accessKey=${INFRA_S3_ACCESS_KEY} \
+          --set infraServices.s3.secretKey=${INFRA_S3_SECRET_KEY} \
           --set config.jwt.secretKey=${JWT_SECRET_KEY} \
+          --set config.oauth2.google.clientId=${GOOGLE_OAUTH2_CLIENT_ID} \
+          --set config.oauth2.google.clientSecret=${GOOGLE_OAUTH2_CLIENT_SECRET} \
+          --set config.email.smtp.username=${SMTP_USERNAME} \
+          --set config.email.smtp.password=${SMTP_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
@@ -704,10 +746,24 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
       INFRA_POSTGRESQL_PASSWORD:
         from_secret: INFRA_POSTGRESQL_PASSWORD
+      INFRA_REDIS_PASSWORD:
+        from_secret: INFRA_REDIS_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
+      INFRA_S3_ACCESS_KEY:
+        from_secret: INFRA_S3_ACCESS_KEY
+      INFRA_S3_SECRET_KEY:
+        from_secret: INFRA_S3_SECRET_KEY
       JWT_SECRET_KEY:
         from_secret: JWT_SECRET_KEY
+      GOOGLE_OAUTH2_CLIENT_ID:
+        from_secret: GOOGLE_OAUTH2_CLIENT_ID
+      GOOGLE_OAUTH2_CLIENT_SECRET:
+        from_secret: GOOGLE_OAUTH2_CLIENT_SECRET
+      SMTP_USERNAME:
+        from_secret: SMTP_USERNAME
+      SMTP_PASSWORD:
+        from_secret: SMTP_PASSWORD
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -718,8 +774,15 @@ steps:
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
           --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set infraServices.s3.accessKey=${INFRA_S3_ACCESS_KEY} \
+          --set infraServices.s3.secretKey=${INFRA_S3_SECRET_KEY} \
           --set config.jwt.secretKey=${JWT_SECRET_KEY} \
+          --set config.oauth2.google.clientId=${GOOGLE_OAUTH2_CLIENT_ID} \
+          --set config.oauth2.google.clientSecret=${GOOGLE_OAUTH2_CLIENT_SECRET} \
+          --set config.email.smtp.username=${SMTP_USERNAME} \
+          --set config.email.smtp.password=${SMTP_PASSWORD} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
           --create-namespace
