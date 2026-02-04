@@ -479,6 +479,8 @@ steps:
         from_secret: INFRA_REDIS_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
+      JWT_SECRET_KEY:
+        from_secret: JWT_SECRET_KEY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -492,6 +494,7 @@ steps:
           --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set config.jwt.secretKey=${JWT_SECRET_KEY} \
           --namespace iqscaffold-dev-env \
           --create-namespace
 
@@ -593,6 +596,8 @@ steps:
         from_secret: INFRA_REDIS_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
+      JWT_SECRET_KEY:
+        from_secret: JWT_SECRET_KEY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -605,6 +610,7 @@ steps:
           --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set config.jwt.secretKey=${JWT_SECRET_KEY} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
@@ -709,6 +715,8 @@ steps:
         from_secret: INFRA_REDIS_PASSWORD
       INFRA_RABBITMQ_PASSWORD:
         from_secret: INFRA_RABBITMQ_PASSWORD
+      JWT_SECRET_KEY:
+        from_secret: JWT_SECRET_KEY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
@@ -721,6 +729,7 @@ steps:
           --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
+          --set config.jwt.secretKey=${JWT_SECRET_KEY} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
