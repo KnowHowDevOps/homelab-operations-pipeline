@@ -491,10 +491,10 @@ steps:
           --values ./values.yaml \
           --values ./values-dev.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
-          --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
-          --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
-          --set config.jwt.secretKey=${JWT_SECRET_KEY} \
+          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
+          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
+          --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
           --namespace iqscaffold-dev-env \
           --create-namespace
 
@@ -607,10 +607,10 @@ steps:
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
-          --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
-          --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
-          --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
-          --set config.jwt.secretKey=${JWT_SECRET_KEY} \
+          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
+          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
+          --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
@@ -726,10 +726,10 @@ steps:
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
-          --set infraServices.postgresql.password=${INFRA_POSTGRESQL_PASSWORD} \
-          --set infraServices.redis.password=${INFRA_REDIS_PASSWORD} \
-          --set infraServices.rabbitmq.password=${INFRA_RABBITMQ_PASSWORD} \
-          --set config.jwt.secretKey=${JWT_SECRET_KEY} \
+          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
+          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
+          --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
           --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
