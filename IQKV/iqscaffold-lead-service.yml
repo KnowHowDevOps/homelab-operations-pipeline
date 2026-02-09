@@ -32,7 +32,6 @@ trigger:
   ref:
     include:
       - refs/heads/dev # Main development branch
-      - refs/heads/wip # Work-in-progress branch
       - refs/heads/feature/* # Feature branches
       - refs/heads/rfc/* # Request for comments branches
       - refs/heads/poc/* # Proof of concept branches
@@ -165,7 +164,6 @@ trigger:
     - tag
   ref:
     - refs/heads/dev # Main development branch
-    - refs/heads/wip # Work-in-progress branch
     - refs/heads/prerelease/* # Release candidate branches
     - refs/heads/*.*.x # Maintenance branches
     - refs/tags/* # Version tags
@@ -312,9 +310,6 @@ trigger:
       - refs/heads/wip # Work-in-progress branch images
       - refs/heads/feature/* # Feature branch images for testing
       - refs/tags/* # Release images for staging/production
-
-depends_on:
-  - PublishArtifacts # Ensures artifacts are published first
 
 # Persistent volumes for dependency caching
 volumes:
