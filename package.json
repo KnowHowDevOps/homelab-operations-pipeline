@@ -28,8 +28,8 @@
     }
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.3.1",
-    "@commitlint/config-conventional": "^20.3.1",
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
     "cz-conventional-changelog": "^3.3.0",
     "glob": "^11.1.0",
     "husky": "9.1.7",
@@ -39,7 +39,7 @@
     "release-it": "^19.2.4",
     "release-it-pnpm": "^4.6.6",
     "sort-package-json": "^3.6.1",
-    "stylelint": "^17.0.0",
+    "stylelint": "^17.1.1",
     "stylelint-config-standard-scss": "^17.0.0"
   },
   "engines": {
