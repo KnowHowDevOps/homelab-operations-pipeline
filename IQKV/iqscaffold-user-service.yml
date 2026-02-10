@@ -369,6 +369,8 @@ steps:
         - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH}
+      cache_from:
+        - "${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}:${DRONE_BRANCH}"
     when:
       branch:
         include:
