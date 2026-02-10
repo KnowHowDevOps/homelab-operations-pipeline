@@ -502,8 +502,8 @@ steps:
           --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
-          --set infraServices.s3.accessKey=$${INFRA_S3_ACCESS_KEY} \
-          --set infraServices.s3.secretKey=$${INFRA_S3_SECRET_KEY} \
+          --set infraServices.objectstorage.accessKey=$${INFRA_S3_ACCESS_KEY} \
+          --set infraServices.objectstorage.secretKey=$${INFRA_S3_SECRET_KEY} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
           --set config.oauth2.google.clientId=$${GOOGLE_OAUTH2_CLIENT_ID} \
           --set config.oauth2.google.clientSecret=$${GOOGLE_OAUTH2_CLIENT_SECRET} \
@@ -636,8 +636,8 @@ steps:
           --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
-          --set infraServices.s3.accessKey=$${INFRA_S3_ACCESS_KEY} \
-          --set infraServices.s3.secretKey=$${INFRA_S3_SECRET_KEY} \
+          --set infraServices.objectstorage.accessKey=$${INFRA_S3_ACCESS_KEY} \
+          --set infraServices.objectstorage.secretKey=$${INFRA_S3_SECRET_KEY} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
           --set config.oauth2.google.clientId=$${GOOGLE_OAUTH2_CLIENT_ID} \
           --set config.oauth2.google.clientSecret=$${GOOGLE_OAUTH2_CLIENT_SECRET} \
@@ -773,8 +773,8 @@ steps:
           --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
-          --set infraServices.s3.accessKey=$${INFRA_S3_ACCESS_KEY} \
-          --set infraServices.s3.secretKey=$${INFRA_S3_SECRET_KEY} \
+          --set infraServices.objectstorage.accessKey=$${INFRA_S3_ACCESS_KEY} \
+          --set infraServices.objectstorage.secretKey=$${INFRA_S3_SECRET_KEY} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
           --set config.oauth2.google.clientId=$${GOOGLE_OAUTH2_CLIENT_ID} \
           --set config.oauth2.google.clientSecret=$${GOOGLE_OAUTH2_CLIENT_SECRET} \
