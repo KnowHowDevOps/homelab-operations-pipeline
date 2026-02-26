@@ -340,7 +340,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.dockerfile # Download Dockerfile template
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.alpine.dockerfile # Download Dockerfile template
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Build JAR file
 
   # --------------------------------------------------------------------------
@@ -364,7 +364,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=know-how.download/library/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
         - EXPOSE_PORT=8080
       tags:
@@ -395,7 +395,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=know-how.download/library/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
         - EXPOSE_PORT=8080
       tags:
@@ -426,7 +426,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=know-how.download/library/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
         - EXPOSE_PORT=8080
       tags:
