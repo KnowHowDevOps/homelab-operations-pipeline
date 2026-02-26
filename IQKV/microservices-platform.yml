@@ -384,7 +384,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH:8} # Strips 'feature/' prefix
     when:
@@ -442,7 +441,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH:8}
     when:
@@ -500,7 +498,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH:8}
     when:
@@ -566,7 +563,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_TAG} # Version tag (e.g., 1.0.0)
     when:
@@ -622,7 +618,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_TAG}
     when:
@@ -678,7 +673,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_TAG}
     when:

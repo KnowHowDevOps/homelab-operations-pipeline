@@ -366,7 +366,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH:8} # Strips 'feature/' prefix
     when:

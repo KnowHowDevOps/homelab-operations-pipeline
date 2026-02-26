@@ -365,7 +365,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_BRANCH}
       cache_from:
@@ -431,7 +430,6 @@ steps:
       build_args:
         - BASE_IMAGE=know-how.download/library/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - EXPOSE_PORT=8080
       tags:
         - ${DRONE_TAG} # Version tag (e.g., 1.0.0)
     when:
