@@ -9,7 +9,8 @@ WORKDIR /opt/app
 COPY ./target/*.jar app.jar
 
 # Extract JAR layers for optimal Docker layer caching
-RUN java -Djarmode=layertools -jar app.jar extract --destination extracted
+# Using new Spring Boot 3.2+ syntax
+RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
 # Stage 2: Distroless runtime (smallest possible image)
 FROM gcr.io/distroless/java21-debian12:nonroot
