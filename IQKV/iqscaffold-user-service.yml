@@ -370,6 +370,7 @@ steps:
       tags:
         - ${DRONE_BRANCH}
       purge: true
+      compress: true
     when:
       branch:
         include:
