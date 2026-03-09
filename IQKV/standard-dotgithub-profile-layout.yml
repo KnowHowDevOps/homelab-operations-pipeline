@@ -25,4 +25,4 @@ steps:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
       - pnpm install && pnpm lint
-      - pnpm prettier:check
+      - pnpm formatter:check

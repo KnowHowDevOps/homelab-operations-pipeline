@@ -49,10 +49,10 @@ This repository uses modern development tools and practices:
 
 ```bash
 # Format code
-pnpm prettier:write
+pnpm formatter:write
 
 # Check formatting
-pnpm prettier:check
+pnpm formatter:check
 
 # Run linting
 pnpm lint

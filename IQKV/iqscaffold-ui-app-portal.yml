@@ -63,7 +63,7 @@ steps:
       NPM_EMAIL:
         from_secret: NEXUS_NPM_EMAIL
     commands:
-      - pnpm install && pnpm prettier:check # Install dependencies and verify code formatting
+      - pnpm install && pnpm formatter:check # Install dependencies and verify code formatting
       - pnpm ci:lint # Run ESLint for code quality checks
       - pnpm test:coverage # Execute unit tests with coverage reporting
       - npx @sonar/scan # Perform SonarQube static code analysis
