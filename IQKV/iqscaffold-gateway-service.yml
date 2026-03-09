@@ -311,7 +311,6 @@ trigger:
       - refs/heads/feature/* # Feature branch images for testing
       - refs/tags/* # Release images for staging/production
 
-
 # Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
@@ -698,13 +697,13 @@ steps:
       - kubectl version --output=yaml # Display Kubernetes version
       - |
       - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
-          --values ./values.yaml \
-          --values ./values-${DRONE_DEPLOY_TO}.yaml \
-          --set image.tag=${DRONE_TAG} \
-          --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
-          --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
-          --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
-          --create-namespace
+        --values ./values.yaml \
+        --values ./values-${DRONE_DEPLOY_TO}.yaml \
+        --set image.tag=${DRONE_TAG} \
+        --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
+        --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
+        --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
+        --create-namespace
 
   # --------------------------------------------------------------------------
   # Slack Notification

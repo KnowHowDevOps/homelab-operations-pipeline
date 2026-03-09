@@ -311,7 +311,6 @@ trigger:
       - refs/heads/feature/* # Feature branch images for testing
       - refs/tags/* # Release images for staging/production
 
-
 # Persistent volumes for dependency caching
 volumes:
   - name: maven-cache

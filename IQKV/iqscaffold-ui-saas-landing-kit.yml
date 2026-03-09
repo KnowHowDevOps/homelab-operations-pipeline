@@ -106,11 +106,11 @@ trigger:
     - push
     - tag
   ref:
-    - refs/heads/dev          # Development branch
-    - refs/heads/wip          # Work in progress branch
+    - refs/heads/dev # Development branch
+    - refs/heads/wip # Work in progress branch
     - refs/heads/prerelease/* # Prerelease branches
-    - refs/heads/*.*.x        # Maintenance branches (e.g., 1.0.x)
-    - refs/tags/*             # All tags
+    - refs/heads/*.*.x # Maintenance branches (e.g., 1.0.x)
+    - refs/tags/* # All tags
 
 depends_on:
   - VerifyCode # Only runs if code verification passes
