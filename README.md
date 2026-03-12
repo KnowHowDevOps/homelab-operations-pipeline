@@ -39,7 +39,7 @@ These pipelines are designed to be used with the DroneExternalConfig plugin, whi
 This repository uses modern development tools and practices:
 
 - **Node.js** (≥22.15.0) for development tooling
-- **Prettier** for code formatting
+- **oxfmt** for code formatting
 - **Stylelint** for CSS/SCSS linting
 - **Husky** for Git hooks
 - **Commitizen** for conventional commits
