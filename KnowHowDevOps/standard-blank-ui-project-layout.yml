@@ -30,6 +30,7 @@ steps:
       NPM_EMAIL:
         from_secret: NEXUS_NPM_EMAIL
     commands:
+      - pip install yamllint && yamllint .
       - pnpm install && pnpm formatter:check
       - pnpm ci:lint
       - npx @sonar/scan

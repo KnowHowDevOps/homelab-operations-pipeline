@@ -75,6 +75,7 @@ steps:
     commands:
       - javac -version # Display Java compiler version
       - mvn -version # Display Maven version
+      - pip install yamllint && yamllint .
       - pnpm install && pnpm lint # Install dependencies and run frontend linting
       - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Resolve and update dependencies
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Run tests and verify build
