@@ -34,6 +34,9 @@
     <Match>
         <Bug pattern="ODR_OPEN_DATABASE_RESOURCE"/>
     </Match>
+       <Match>
+        <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
+    </Match>
 
    <!-- Exclude constructor throw warnings - these are intentional validation in constructors -->
     <Match>
