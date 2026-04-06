@@ -411,7 +411,7 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-dev-env || true
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-dev-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
@@ -421,7 +421,7 @@ steps:
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.mail.username=$${SMTP_USERNAME} \
           --set config.mail.password=$${SMTP_PASSWORD} \
-          --namespace iqscaffold-dev-env \
+          --namespace iqkv-dev-env \
           --create-namespace
 
   # --------------------------------------------------------------------------
@@ -471,7 +471,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-dev-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-dev-env
 
 ---
 # ============================================================================
@@ -515,7 +515,7 @@ steps:
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.mail.username=$${SMTP_USERNAME} \
           --set config.mail.password=$${SMTP_PASSWORD} \
-          --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   - name: notify-slack
@@ -562,7 +562,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
@@ -607,7 +607,7 @@ steps:
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.mail.username=$${SMTP_USERNAME} \
           --set config.mail.password=$${SMTP_PASSWORD} \
-          --namespace iqscaffold-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   - name: notify-slack
@@ -655,7 +655,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-${DRONE_DEPLOY_TO}-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
