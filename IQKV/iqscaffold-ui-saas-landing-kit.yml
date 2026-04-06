@@ -291,7 +291,7 @@ steps:
   # Step 4: Deploy to Dev Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
-  # Deploys to iqscaffold-dev-env namespace with dev-specific configuration
+  # Deploys to iqkvdev-dev-env namespace with dev-specific configuration
   # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
@@ -302,13 +302,13 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-dev-env || true # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-dev-env || true # Uninstall deployment
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-dev.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --namespace iqscaffold-dev-env \
+          --namespace iqkvdev-dev-env \
           --create-namespace
     depends_on:
       - build-container
@@ -372,4 +372,4 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqscaffold-dev-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-dev-env # Uninstall deployment
