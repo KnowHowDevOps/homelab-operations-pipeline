@@ -492,7 +492,7 @@ steps:
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-dev-env \
+          --namespace iqkvdev-test-env \
           --create-namespace
 
   # --------------------------------------------------------------------------

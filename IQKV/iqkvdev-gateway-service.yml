@@ -379,7 +379,7 @@ steps:
           --values ./values.yaml \
           --values ./values-test.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --namespace iqkvdev-dev-env \
+          --namespace iqkvdev-test-env \
           --create-namespace
 
   - name: notify-slack

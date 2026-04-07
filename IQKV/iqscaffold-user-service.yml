@@ -507,7 +507,7 @@ steps:
           --set config.oauth2.google.clientSecret=$${GOOGLE_OAUTH2_CLIENT_SECRET} \
           --set config.email.smtp.username=$${SMTP_USERNAME} \
           --set config.email.smtp.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-dev-env \
+          --namespace iqkvdev-test-env \
           --create-namespace
 
   # --------------------------------------------------------------------------

@@ -506,7 +506,7 @@ steps:
           --set config.encryption.masterKey=${ENCRYPTION_MASTER_KEY} \
           --set config.email.smtp.password=$${SMTP_PASSWORD} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-dev-env \
+          --namespace iqkvdev-test-env \
           --create-namespace
 
   # --------------------------------------------------------------------------

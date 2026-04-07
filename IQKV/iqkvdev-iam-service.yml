@@ -421,7 +421,7 @@ steps:
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.mail.username=$${SMTP_USERNAME} \
           --set config.mail.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-dev-env \
+          --namespace iqkvdev-test-env \
           --create-namespace
 
   # --------------------------------------------------------------------------

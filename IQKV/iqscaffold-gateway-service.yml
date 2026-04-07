@@ -484,7 +484,7 @@ steps:
           --set image.tag=${DRONE_BRANCH} \
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-dev-env \
+          --namespace iqkvdev-test-env \
           --create-namespace
 
   # --------------------------------------------------------------------------

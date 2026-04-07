@@ -293,7 +293,7 @@ steps:
   # Step 4: Deploy to Test Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
-  # Deploys to iqkvdev-dev-env namespace with dev-specific configuration
+  # Deploys to iqkvdev-test-env namespace with dev-specific configuration
   # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
@@ -310,7 +310,7 @@ steps:
           --values ./values.yaml \
           --values ./values-test.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --namespace iqkvdev-dev-env \
+          --namespace iqkvdev-test-env \
           --create-namespace
     depends_on:
       - build-container
