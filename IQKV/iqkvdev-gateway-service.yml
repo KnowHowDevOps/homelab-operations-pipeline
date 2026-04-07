@@ -5,8 +5,8 @@
 #   1. VerifyCode                       - Code quality, tests, and static analysis
 #   2. PublishArtifacts                 - Maven artifacts to Nexus repository
 #   3. PublishDockerImage               - Container images to registry
-#   4. DeployWorkInProgressOnDev        - Wip branch deployments to dev environment
-#   5. RollbackWorkInProgressOnDev      - Rollback wip deployments
+#   4. DeployWorkInProgressToTestEnv        - Wip branch deployments to dev environment
+#   5. RollbackWorkInProgressFromTestEnv      - Rollback wip deployments
 #   6. PromoteFeatureDeployment         - Feature branch deployments to test environment
 #   7. RollbackFeatureDeployment        - Rollback feature deployments
 #   8. PromoteDeployment                - Release deployments to staging/production
@@ -348,10 +348,10 @@ steps:
 
 ---
 # ============================================================================
-# Pipeline 4: DeployWorkInProgressOnDev
+# Pipeline 4: DeployWorkInProgressToTestEnv
 # ============================================================================
 kind: pipeline
-name: DeployWorkInProgressOnDev
+name: DeployWorkInProgressToTestEnv
 type: docker
 trigger:
   event:
@@ -373,11 +373,11 @@ steps:
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-dev-env || true
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
-          --values ./values-dev.yaml \
+          --values ./values-test.yaml \
           --set image.tag=${DRONE_BRANCH} \
           --namespace iqkvdev-dev-env \
           --create-namespace
@@ -404,10 +404,10 @@ steps:
 
 ---
 # ============================================================================
-# Pipeline 5: RollbackWorkInProgressOnDev
+# Pipeline 5: RollbackWorkInProgressFromTestEnv
 # ============================================================================
 kind: pipeline
-name: RollbackWorkInProgressOnDev
+name: RollbackWorkInProgressFromTestEnv
 type: docker
 trigger:
   event:
@@ -426,7 +426,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-dev-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env
 
 ---
 # ============================================================================
