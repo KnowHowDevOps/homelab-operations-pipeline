@@ -1,25 +1,21 @@
 # =====================================================================================
-# Service - Drone CI/CD Pipeline
+# iqscaffold-gateway-service - Drone CI/CD Pipeline
 # =====================================================================================
 # Pipeline Flow:
-#   1. VerifyCode                       - Code quality, tests, and static analysis
-#   2. PublishArtifacts                 - Maven artifacts to Nexus repository
-#   3. PublishDockerImage               - Container images to registry
-#   4. DeployWorkInProgressToTestEnv        - Wip branch deployments to dev environment
-#   5. RollbackWorkInProgressFromTestEnv      - Rollback wip deployments
-#   6. PromoteFeatureDeployment         - Feature branch deployments to test environment
-#   7. RollbackFeatureDeployment        - Rollback feature deployments
-#   8. PromoteDeployment                - Release deployments to staging/production
-#   9. RollbackDeployment               - Rollback release deployments
-#   10. ReleasePackage                   - Automated version management
+#   1. VerifyCode                            - Code quality, tests, and static analysis
+#   2. PublishArtifacts                      - Maven artifacts to Nexus repository
+#   3. PublishDockerImage                    - Container images to registry
+#   4. DeployWorkInProgressToTestEnv         - Wip branch deployments to test environment
+#   5. RollbackWorkInProgressFromTestEnv     - Rollback wip deployments
+#   6. PromoteFeatureDeployment              - Feature branch deployments to test environment
+#   7. RollbackFeatureDeployment             - Rollback feature deployments
+#   8. PromoteDeployment                     - Release deployments to staging/production
+#   9. RollbackDeployment                    - Rollback release deployments
+#   10. ReleasePackage                       - Automated version management
 # ======================================================================================
 
 # ============================================================================
 # Pipeline 1: VerifyCode
-# ============================================================================
-# Validates code quality, runs tests, and performs static analysis
-# Triggers: Push to dev, feature/*, rfc/*, poc/*, bugfix/*, improvement/*,
-#          prerelease/*, library/*, hotfix/*, *.*.x branches and tags
 # ============================================================================
 kind: pipeline
 name: VerifyCode
@@ -31,19 +27,18 @@ trigger:
     - tag
   ref:
     include:
-      - refs/heads/dev # Main development branch
-      - refs/heads/feature/* # Feature branches
-      - refs/heads/rfc/* # Request for comments branches
-      - refs/heads/poc/* # Proof of concept branches
-      - refs/heads/bugfix/* # Bug fix branches
-      - refs/heads/improvement/* # Enhancement branches
-      - refs/heads/prerelease/* # Release candidate branches
-      - refs/heads/library/* # Library development branches
-      - refs/heads/hotfix/* # Production hotfix branches
-      - refs/heads/*.*.x # Maintenance branches
-      - refs/tags/* # Version tags
+      - refs/heads/dev
+      - refs/heads/feature/*
+      - refs/heads/rfc/*
+      - refs/heads/poc/*
+      - refs/heads/bugfix/*
+      - refs/heads/improvement/*
+      - refs/heads/prerelease/*
+      - refs/heads/library/*
+      - refs/heads/hotfix/*
+      - refs/heads/*.*.x
+      - refs/tags/*
 
-# Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
     host:
@@ -56,13 +51,6 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  # --------------------------------------------------------------------------
-  # Step 1: Code Coverage Gate
-  # --------------------------------------------------------------------------
-  # Runs unit tests, integration tests, and measures code coverage
-  # Includes frontend linting with pnpm and Maven dependency resolution
-  # Skips Javadoc generation for faster execution
-  # --------------------------------------------------------------------------
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
     pull: never
@@ -75,22 +63,13 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - javac -version # Display Java compiler version
-      - mvn -version # Display Maven version
+      - javac -version
+      - mvn -version
       - pip install yamllint && yamllint .
-      - pnpm install && pnpm lint # Install dependencies and run frontend linting
-      - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Resolve and update dependencies
-      - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Run tests and verify build
+      - pnpm install && pnpm lint
+      - mvn dependency:resolve -U -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-  # --------------------------------------------------------------------------
-  # Step 2: Static Analysis Gate
-  # --------------------------------------------------------------------------
-  # Performs comprehensive static code analysis:
-  #   - SonarQube: Code quality, security vulnerabilities, code smells
-  #   - PMD: Code quality rules with High priority violations only
-  #   - SpotBugs: Bug pattern detection
-  # Quality gate blocks pipeline if thresholds not met
-  # --------------------------------------------------------------------------
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
@@ -111,24 +90,11 @@ steps:
       SONAR_TOKEN:
         from_secret: SONAR_TOKEN
     commands:
-      # Copy dependencies for SonarQube analysis
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-
-      # SonarQube analysis with quality gate (blocks on failure)
       - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
-
-      # PMD analysis (High priority violations only)
       - pmd check --minimum-priority High -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
+      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
-      # SpotBugs analysis with custom exclusions
-      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
-
-  # --------------------------------------------------------------------------
-  # Step 3: Slack Notification (Failure Only)
-  # --------------------------------------------------------------------------
-  # Notifies team in Slack when verification fails
-  # Uses red circle and thunder cloud emoji for failure indication
-  # --------------------------------------------------------------------------
   - name: notify-slack-on-failure
     image: plugins/slack
     settings:
@@ -148,13 +114,6 @@ steps:
 # ============================================================================
 # Pipeline 2: PublishArtifacts
 # ============================================================================
-# Publishes Maven artifacts to Nexus repository
-# Triggers: Push to dev, wip, prerelease/*, *.*.x branches and tags
-# Artifacts:
-#   - SNAPSHOT JARs (dev, prerelease, maintenance branches)
-#   - Release JARs (tags only)
-#   - GitHub releases with changelog (tags only)
-# ============================================================================
 kind: pipeline
 name: PublishArtifacts
 type: docker
@@ -164,15 +123,14 @@ trigger:
     - push
     - tag
   ref:
-    - refs/heads/dev # Main development branch
-    - refs/heads/prerelease/* # Release candidate branches
-    - refs/heads/*.*.x # Maintenance branches
-    - refs/tags/* # Version tags
+    - refs/heads/dev
+    - refs/heads/prerelease/*
+    - refs/heads/*.*.x
+    - refs/tags/*
 
 depends_on:
-  - VerifyCode # Only runs if code verification passes
+  - VerifyCode
 
-# Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
     host:
@@ -182,13 +140,6 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  # --------------------------------------------------------------------------
-  # Step 1: Publish SNAPSHOT JAR
-  # --------------------------------------------------------------------------
-  # Deploys SNAPSHOT artifacts to Nexus for dev/prerelease/maintenance branches
-  # Skips tests as they already passed in VerifyCode pipeline
-  # Skips Javadoc and Checkstyle for faster deployment
-  # --------------------------------------------------------------------------
   - name: publish-snapshot-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -209,12 +160,6 @@ steps:
           - "prerelease/*"
           - "*.*.x"
 
-  # --------------------------------------------------------------------------
-  # Step 2: Publish Release JAR
-  # --------------------------------------------------------------------------
-  # Deploys release artifacts to Nexus for tagged versions
-  # Uses releases repository instead of snapshots
-  # --------------------------------------------------------------------------
   - name: publish-release-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -232,13 +177,6 @@ steps:
       ref:
         - "refs/tags/*"
 
-  # --------------------------------------------------------------------------
-  # Step 3: Create GitHub Release
-  # --------------------------------------------------------------------------
-  # Generates GitHub release with changelog using release-it
-  # Only runs for tagged versions after successful JAR publication
-  # Downloads release configuration from central repository
-  # --------------------------------------------------------------------------
   - name: create-github-release
     depends_on:
       - publish-release-jar
@@ -253,22 +191,16 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
-      - git checkout -b release # Create temporary release branch
-      - pnpm install && git config --unset core.hooksPath # Install dependencies and disable git hooks
-      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json # Download release configuration
-      - git fetch --tags # Ensure all tags are available
-      - release-it --ci --no-increment -VV # Generate release with verbose output
-      - git status # Show final git status
+      - git checkout -b release
+      - pnpm install && git config --unset core.hooksPath
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json
+      - git fetch --tags
+      - release-it --ci --no-increment -VV
+      - git status
     when:
       ref:
         - "refs/tags/*"
 
-  # --------------------------------------------------------------------------
-  # Step 4: Slack Notification
-  # --------------------------------------------------------------------------
-  # Notifies team of artifact publication success/failure
-  # Shows different messages and emojis based on build status
-  # --------------------------------------------------------------------------
   - name: notify-slack
     image: plugins/slack
     settings:
@@ -289,14 +221,10 @@ steps:
     depends_on:
       - publish-snapshot-jar
       - publish-release-jar
+
 ---
 # ============================================================================
 # Pipeline 3: PublishDockerImage
-# ============================================================================
-# Builds and publishes Docker image for the service
-# Triggers: Push to wip, feature/* branches and tags
-# Image naming: know-how.download/{owner}/{repo}:{tag}
-# Port Standardization: Service exposes port 8080
 # ============================================================================
 kind: pipeline
 name: PublishDockerImage
@@ -308,11 +236,10 @@ trigger:
     - tag
   ref:
     include:
-      - refs/heads/wip # Work-in-progress branch images
-      - refs/heads/feature/* # Feature branch images for testing
-      - refs/tags/* # Release images for staging/production
+      - refs/heads/wip
+      - refs/heads/feature/*
+      - refs/tags/*
 
-# Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
     host:
@@ -322,12 +249,6 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  # --------------------------------------------------------------------------
-  # Step 1: Package JAR File
-  # --------------------------------------------------------------------------
-  # Builds JAR file for the service and downloads Dockerfile template
-  # Skips tests as they already passed in VerifyCode pipeline
-  # --------------------------------------------------------------------------
   - name: package-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -340,21 +261,16 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.alpine-simple.dockerfile # Download Dockerfile template
-      - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Build JAR file
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.alpine-simple.dockerfile
+      - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-  # --------------------------------------------------------------------------
-  # Step 2: Build WIP Branch Docker Image
-  # --------------------------------------------------------------------------
-  # Builds Docker image for wip branches with branch name as tag
-  # --------------------------------------------------------------------------
   - name: build-wip-container
     depends_on:
       - package-jar
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./ # Single project context
+      context: ./
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
@@ -377,18 +293,13 @@ steps:
         include:
           - "wip"
 
-  # --------------------------------------------------------------------------
-  # Step 3: Build Feature Branch Docker Image
-  # --------------------------------------------------------------------------
-  # Builds Docker image for feature branches with branch name as tag
-  # --------------------------------------------------------------------------
   - name: build-container-with-feature
     depends_on:
       - package-jar
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./ # Single project context
+      context: ./
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
@@ -401,24 +312,19 @@ steps:
         - BASE_IMAGE=know-how.download/library/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
-        - ${DRONE_BRANCH:8} # Strips 'feature/' prefix
+        - ${DRONE_BRANCH:8}
     when:
       branch:
         include:
           - "feature/*"
 
-  # --------------------------------------------------------------------------
-  # Step 4: Build Release Docker Image
-  # --------------------------------------------------------------------------
-  # Builds Docker image for tagged releases with version tag
-  # --------------------------------------------------------------------------
   - name: build-container-release
     depends_on:
       - package-jar
     image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
-      context: ./ # Single project context
+      context: ./
       storage_driver: vfs
       username:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
@@ -431,7 +337,7 @@ steps:
         - BASE_IMAGE=know-how.download/library/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
-        - ${DRONE_TAG} # Version tag (e.g., 1.0.0)
+        - ${DRONE_TAG}
     when:
       ref:
         - "refs/tags/*"
@@ -439,9 +345,6 @@ steps:
 ---
 # ============================================================================
 # Pipeline 4: DeployWorkInProgressToTestEnv
-# ============================================================================
-# Deploys the built container to test environment using Helm
-# Sends Slack notification on completion
 # ============================================================================
 kind: pipeline
 name: DeployWorkInProgressToTestEnv
@@ -453,16 +356,10 @@ trigger:
   ref:
     - refs/heads/wip
 
-# Dependency: Waits for code verification to pass
 depends_on:
-  - PublishArtifacts
+  - PublishDockerImage
 
 steps:
-  # --------------------------------------------------------------------------
-  # Deploy to Test Environment
-  # --------------------------------------------------------------------------
-  # Uses Helm for atomic deployment with automatic rollback on failure
-  # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
     pull: never
@@ -474,9 +371,9 @@ steps:
       JWT_SECRET_KEY:
         from_secret: JWT_SECRET_KEY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - kubectl version --output=yaml # Display Kubernetes version
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env || true # Uninstall deployment
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - kubectl version --output=yaml
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
@@ -487,11 +384,6 @@ steps:
           --namespace iqkvdev-test-env \
           --create-namespace
 
-  # --------------------------------------------------------------------------
-  # Slack Notification
-  # --------------------------------------------------------------------------
-  # Notifies team of deployment success/failure with appropriate emojis
-  # --------------------------------------------------------------------------
   - name: notify-slack
     image: plugins/slack
     settings:
@@ -516,27 +408,18 @@ steps:
 # ============================================================================
 # Pipeline 5: RollbackWorkInProgressFromTestEnv
 # ============================================================================
-# Rolls back wip branch deployment from dev environment
-# Trigger: Manual rollback event with target=dev
-# Uses Helm uninstall to completely remove the deployment
-# ============================================================================
 kind: pipeline
 name: RollbackWorkInProgressFromTestEnv
 type: docker
 trigger:
   event:
-    - rollback # Manual trigger only
+    - rollback
   target:
     - dev
   ref:
     - "refs/heads/wip"
 
 steps:
-  # --------------------------------------------------------------------------
-  # Rollback from Dev Environment
-  # --------------------------------------------------------------------------
-  # Uses Helm uninstall to completely remove the wip deployment
-  # --------------------------------------------------------------------------
   - name: rollback
     image: cicdtools/pipeline-runner
     pull: never
@@ -544,34 +427,25 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env # Uninstall deployment
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env
 
 ---
 # ============================================================================
 # Pipeline 6: PromoteFeatureDeployment
-# ============================================================================
-# Deploys feature branches to test environment
-# Trigger: Manual promotion event with target=test
-# Deployment: Helm-based with atomic rollback on failure
 # ============================================================================
 kind: pipeline
 name: PromoteFeatureDeployment
 type: docker
 trigger:
   event:
-    - promote # Manual trigger only
+    - promote
   target:
-    - test # Test environment
+    - test
   ref:
     - "refs/heads/feature/*"
 
 steps:
-  # --------------------------------------------------------------------------
-  # Deploy to Test Environment
-  # --------------------------------------------------------------------------
-  # Uses Helm for atomic deployment with automatic rollback on failure
-  # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
     pull: never
@@ -583,8 +457,8 @@ steps:
       JWT_SECRET_KEY:
         from_secret: JWT_SECRET_KEY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - kubectl version --output=yaml # Display Kubernetes version
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - kubectl version --output=yaml
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
@@ -595,11 +469,6 @@ steps:
           --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
-  # --------------------------------------------------------------------------
-  # Slack Notification
-  # --------------------------------------------------------------------------
-  # Notifies team of deployment success/failure with appropriate emojis
-  # --------------------------------------------------------------------------
   - name: notify-slack
     image: plugins/slack
     settings:
@@ -624,27 +493,18 @@ steps:
 # ============================================================================
 # Pipeline 7: RollbackFeatureDeployment
 # ============================================================================
-# Rolls back feature branch deployment from test environment
-# Trigger: Manual rollback event with target=test
-# Uses Helm uninstall to completely remove the deployment
-# ============================================================================
 kind: pipeline
 name: RollbackFeatureDeployment
 type: docker
 trigger:
   event:
-    - rollback # Manual trigger only
+    - rollback
   target:
     - test
   ref:
     - "refs/heads/feature/*"
 
 steps:
-  # --------------------------------------------------------------------------
-  # Rollback from Test Environment
-  # --------------------------------------------------------------------------
-  # Uses Helm uninstall to completely remove the feature deployment
-  # --------------------------------------------------------------------------
   - name: rollback
     image: cicdtools/pipeline-runner
     pull: never
@@ -652,37 +512,26 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env # Uninstall deployment
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
 # Pipeline 8: PromoteDeployment
-# ============================================================================
-# Deploys tagged releases to staging or production environments
-# Trigger: Manual promotion event with target=staging|production
-# Deployment: Helm-based with atomic rollback on failure
 # ============================================================================
 kind: pipeline
 name: PromoteDeployment
 type: docker
 trigger:
   event:
-    - promote # Manual trigger only
+    - promote
   target:
-    - staging # Staging environment
-    - production # Production environment
+    - staging
+    - production
   ref:
-    - "refs/tags/*" # Only tagged releases
+    - "refs/tags/*"
 
 steps:
-  # --------------------------------------------------------------------------
-  # Deploy to Staging/Production
-  # --------------------------------------------------------------------------
-  # Uses Helm for atomic deployment with automatic rollback on failure
-  # Image tag is the version tag (e.g., 1.0.0)
-  # Service uses standardized port 8080
-  # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
     pull: never
@@ -694,23 +543,18 @@ steps:
       JWT_SECRET_KEY:
         from_secret: JWT_SECRET_KEY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - kubectl version --output=yaml # Display Kubernetes version
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - kubectl version --output=yaml
       - |
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
-        --values ./values.yaml \
-        --values ./values-${DRONE_DEPLOY_TO}.yaml \
-        --set image.tag=${DRONE_TAG} \
-        --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
-        --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
-        --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
-        --create-namespace
+        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+          --values ./values.yaml \
+          --values ./values-${DRONE_DEPLOY_TO}.yaml \
+          --set image.tag=${DRONE_TAG} \
+          --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
+          --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
+          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --create-namespace
 
-  # --------------------------------------------------------------------------
-  # Slack Notification
-  # --------------------------------------------------------------------------
-  # Notifies team of deployment success/failure with appropriate emojis
-  # --------------------------------------------------------------------------
   - name: notify-slack
     image: plugins/slack
     settings:
@@ -735,16 +579,12 @@ steps:
 # ============================================================================
 # Pipeline 9: RollbackDeployment
 # ============================================================================
-# Rolls back release deployment from staging or production
-# Trigger: Manual rollback event with target=staging|production
-# Uses Helm uninstall to completely remove the deployment
-# ============================================================================
 kind: pipeline
 name: RollbackDeployment
 type: docker
 trigger:
   event:
-    - rollback # Manual trigger only
+    - rollback
   target:
     - staging
     - production
@@ -752,11 +592,6 @@ trigger:
     - "refs/tags/*"
 
 steps:
-  # --------------------------------------------------------------------------
-  # Rollback from Staging/Production
-  # --------------------------------------------------------------------------
-  # Uses Helm uninstall to completely remove the release deployment
-  # --------------------------------------------------------------------------
   - name: rollback
     image: cicdtools/pipeline-runner
     pull: never
@@ -764,35 +599,25 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env # Uninstall deployment
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
 # Pipeline 10: ReleasePackage
-# ============================================================================
-# Automates version management and release creation
-# Trigger: Manual promotion event with target=release
-# Process:
-#   1. Extracts version from package.json
-#   2. Updates Maven POMs to release version
-#   3. Creates and pushes version tag
-#   4. Bumps to next SNAPSHOT version
-#   5. Generates changelog and commits
 # ============================================================================
 kind: pipeline
 name: ReleasePackage
 type: docker
 trigger:
   event:
-    - promote # Manual trigger only
+    - promote
   target:
     - release
   branch:
-    - "dev" # Main development branch
-    - "*.*.x" # Maintenance branches
+    - "dev"
+    - "*.*.x"
 
-# Persistent volumes for dependency caching
 volumes:
   - name: maven-cache
     host:
@@ -802,17 +627,6 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  # --------------------------------------------------------------------------
-  # Create Release Tag and Bump Version
-  # --------------------------------------------------------------------------
-  # Automated release workflow:
-  #   1. Extract version from package.json and remove SNAPSHOT
-  #   2. Create and push release tag
-  #   3. Bump to next SNAPSHOT version
-  #   4. Generate changelog with release-it
-  #   5. Commit and push changes
-  # Failure is ignored to allow re-running if release already exists
-  # --------------------------------------------------------------------------
   - name: create-release-tag
     failure: ignore
     image: cicdtools/pipeline-runner
@@ -824,44 +638,35 @@ steps:
       GITHUB_TOKEN:
         from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
-      # Extract and prepare version numbers
       - export RELEASE_VERSION=$(jq -r .version package.json | cut -d '-' -f 1)
       - export INCREMENT_COMMAND="increment_version -m $${RELEASE_VERSION}"
       - export SNAPSHOT_VERSION=$($${INCREMENT_COMMAND})
       - echo Prepare new version $${RELEASE_VERSION}
       - export NEXT_SNAPSHOT=$${SNAPSHOT_VERSION}-SNAPSHOT
-
-      # Configure Git identity for commits
       - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_AUTHOR_EMAIL="$${SVC_BUILD_GIT_EMAIL}"
       - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
       - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
       - git remote set-url --push origin ${DRONE_GIT_SSH_URL}
-
-      # Create release version and tag
       - git checkout -b v$${RELEASE_VERSION}
-      - mvn versions:set -DremoveSnapshot # Remove SNAPSHOT from version
-      - mvn versions:set -DnewVersion=$${RELEASE_VERSION} # Set release version
-      - mvn versions:update-parent # Update parent version references
+      - mvn versions:set -DremoveSnapshot
+      - mvn versions:set -DnewVersion=$${RELEASE_VERSION}
+      - mvn versions:update-parent
       - >-
         git commit -a -m "chore: bump v$${RELEASE_VERSION}"
-      - git tag $${RELEASE_VERSION} && git push origin $${RELEASE_VERSION} # Create and push tag
+      - git tag $${RELEASE_VERSION} && git push origin $${RELEASE_VERSION}
       - echo "✅ Release tag $${RELEASE_VERSION} was created."
       - sleep 10
-
-      # Cleanup and prepare next SNAPSHOT version
       - git tag -d $${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v$${RELEASE_VERSION}
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT} # Set next SNAPSHOT version
-      - mvn versions:update-parent -DallowSnapshots=true # Allow SNAPSHOT parent versions
-
-      # Generate changelog and commit
+      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT}
+      - mvn versions:update-parent -DallowSnapshots=true
       - pnpm install && git config --unset core.hooksPath
-      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json # Download changelog configuration
-      - git fetch --tags # Ensure all tags are available
-      - release-it --ci --no-increment -VV # Generate changelog with verbose output
-      - npm version $${SNAPSHOT_VERSION} --no-git-tag-version # Update package.json version
+      - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json
+      - git fetch --tags
+      - release-it --ci --no-increment -VV
+      - npm version $${SNAPSHOT_VERSION} --no-git-tag-version
       - >-
         git commit -a -m "chore: create new $${NEXT_SNAPSHOT}"
-      - git push origin ${DRONE_COMMIT_BRANCH} # Push changes to main branch
+      - git push origin ${DRONE_COMMIT_BRANCH}
       - echo "✅ Started $${NEXT_SNAPSHOT}."
       - echo "🚀 Good job, new version $${RELEASE_VERSION} was released successfully."
