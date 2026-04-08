@@ -4,7 +4,7 @@
 # Pipeline Flow:
 #   1. VerifyCode                       - Code quality, tests, and static analysis
 #   2. PublishArtifacts                 - NPM packages to Nexus repository
-#   3. DeployWorkInProgressToTestEnv        - Wip branch deployments to dev environment
+#   3. DeployWorkInProgress        - Wip branch deployments to dev environment
 #   4. RollbackWorkInProgress      - Rollback wip deployments
 # ======================================================================================
 
@@ -202,7 +202,7 @@ steps:
 
 ---
 # ============================================================================
-# Pipeline 3: DeployWorkInProgressToTestEnv
+# Pipeline 3: DeployWorkInProgress
 # ============================================================================
 # Builds and deploys wip branch to dev environment using containerized approach
 # Triggers: Push to wip branch only
@@ -213,7 +213,7 @@ steps:
 #   4. Deploys to Kubernetes using Helm
 # ============================================================================
 kind: pipeline
-name: DeployWorkInProgressToTestEnv
+name: DeployWorkInProgress
 type: docker
 
 trigger:
