@@ -6,8 +6,8 @@
 #   2. PublishArtifacts                 - Maven artifacts to Nexus repository
 #   3. PublishDockerImage               - Container images to registry
 #   4. DeployWorkInProgressToTestEnv        - Wip branch deployments to dev environment
-#   5. RollbackWorkInProgressFromTestEnv      - Rollback wip deployments
-#   6. PromoteFeatureDeployment         - Feature branch deployments to test environment
+#   5. RollbackWorkInProgress      - Rollback wip deployments
+#   6. PromoteFeatureDeployment         - Feature branch deployments to SIT environment
 #   7. RollbackFeatureDeployment        - Rollback feature deployments
 #   8. PromoteDeployment                - Release deployments to staging/production
 #   9. RollbackDeployment               - Rollback release deployments
@@ -373,13 +373,13 @@ steps:
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env || true
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-test.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --namespace iqkvdev-test-env \
+          --namespace iqkvdev-sit-env \
           --create-namespace
 
   - name: notify-slack
@@ -404,16 +404,16 @@ steps:
 
 ---
 # ============================================================================
-# Pipeline 5: RollbackWorkInProgressFromTestEnv
+# Pipeline 5: RollbackWorkInProgress
 # ============================================================================
 kind: pipeline
-name: RollbackWorkInProgressFromTestEnv
+name: RollbackWorkInProgress
 type: docker
 trigger:
   event:
     - rollback
   target:
-    - dev
+    - sit
   ref:
     - "refs/heads/wip"
 
@@ -426,7 +426,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env
 
 ---
 # ============================================================================
@@ -439,7 +439,7 @@ trigger:
   event:
     - promote
   target:
-    - test
+    - sit
   ref:
     - "refs/heads/feature/*"
 
@@ -492,7 +492,7 @@ trigger:
   event:
     - rollback
   target:
-    - test
+    - sit
   ref:
     - "refs/heads/feature/*"
 

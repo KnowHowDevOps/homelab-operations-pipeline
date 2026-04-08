@@ -5,7 +5,7 @@
 #   1. VerifyCode                       - Code quality, tests, and static analysis
 #   2. PublishArtifacts                 - NPM packages to Nexus repository
 #   3. DeployWorkInProgressToTestEnv        - Wip branch deployments to dev environment
-#   4. RollbackWorkInProgressFromTestEnv      - Rollback wip deployments
+#   4. RollbackWorkInProgress      - Rollback wip deployments
 # ======================================================================================
 
 # ============================================================================
@@ -290,10 +290,10 @@ steps:
       - build-application
 
   # --------------------------------------------------------------------------
-  # Step 4: Deploy to Test Environment
+  # Step 4: Deploy to SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
-  # Deploys to iqkvdev-test-env namespace with dev-specific configuration
+  # Deploys to iqkvdev-sit-env namespace with dev-specific configuration
   # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
@@ -304,13 +304,13 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env || true # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true # Uninstall deployment
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-test.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --namespace iqkvdev-test-env \
+          --namespace iqkvdev-sit-env \
           --create-namespace
     depends_on:
       - build-container
@@ -342,27 +342,27 @@ steps:
 
 ---
 # ============================================================================
-# Pipeline 4: RollbackWorkInProgressFromTestEnv
+# Pipeline 4: RollbackWorkInProgress
 # ============================================================================
-# Rolls back wip branch deployment from dev environment
-# Trigger: Manual rollback event with target=dev
+# Rolls back wip branch deployment from SIT environment
+# Trigger: Manual rollback event with target=sit
 # Uses Helm uninstall to completely remove the deployment
 # ============================================================================
 kind: pipeline
-name: RollbackWorkInProgressFromTestEnv
+name: RollbackWorkInProgress
 type: docker
 
 trigger:
   event:
     - rollback # Manual trigger only
   target:
-    - dev
+    - sit
   ref:
     - "refs/heads/wip"
 
 steps:
   # --------------------------------------------------------------------------
-  # Rollback from Dev Environment
+  # Rollback from SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm uninstall to completely remove the wip deployment
   # --------------------------------------------------------------------------
@@ -374,4 +374,4 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env # Uninstall deployment

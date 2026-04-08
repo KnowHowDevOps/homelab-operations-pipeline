@@ -6,8 +6,8 @@
 #   2. PublishArtifacts                 - Maven artifacts to Nexus repository
 #   3. PublishDockerImage               - Container images to registry
 #   4. DeployWorkInProgressToTestEnv        - Wip branch deployments to dev environment
-#   5. RollbackWorkInProgressFromTestEnv      - Rollback wip deployments
-#   6. PromoteFeatureDeployment         - Feature branch deployments to test environment
+#   5. RollbackWorkInProgress      - Rollback wip deployments
+#   6. PromoteFeatureDeployment         - Feature branch deployments to SIT environment
 #   7. RollbackFeatureDeployment        - Rollback feature deployments
 #   8. PromoteDeployment                - Release deployments to staging/production
 #   9. RollbackDeployment               - Rollback release deployments
@@ -440,7 +440,7 @@ steps:
 # ============================================================================
 # Pipeline 4: DeployWorkInProgressToTestEnv
 # ============================================================================
-# Deploys the built container to test environment using Helm
+# Deploys the built container to SIT environment using Helm
 # Sends Slack notification on completion
 # ============================================================================
 kind: pipeline
@@ -459,7 +459,7 @@ depends_on:
 
 steps:
   # --------------------------------------------------------------------------
-  # Deploy to Test Environment
+  # Deploy to SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
   # Passes connection strings from Drone secrets to external services
@@ -481,7 +481,7 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env || true # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true # Uninstall deployment
       - |
         # Deploy with connection parameters from infra secrets
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
@@ -492,7 +492,7 @@ steps:
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-test-env \
+          --namespace iqkvdev-sit-env \
           --create-namespace
 
   # --------------------------------------------------------------------------
@@ -522,14 +522,14 @@ steps:
 
 ---
 # ============================================================================
-# Pipeline 5: RollbackWorkInProgressFromTestEnv
+# Pipeline 5: RollbackWorkInProgress
 # ============================================================================
-# Rolls back wip branch deployment from dev environment
-# Trigger: Manual rollback event with target=dev
+# Rolls back wip branch deployment from SIT environment
+# Trigger: Manual rollback event with target=sit
 # Uses Helm uninstall to completely remove the deployment
 # ============================================================================
 kind: pipeline
-name: RollbackWorkInProgressFromTestEnv
+name: RollbackWorkInProgress
 type: docker
 trigger:
   event:
@@ -541,7 +541,7 @@ trigger:
 
 steps:
   # --------------------------------------------------------------------------
-  # Rollback from Dev Environment
+  # Rollback from SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm uninstall to completely remove the wip deployment
   # --------------------------------------------------------------------------
@@ -553,14 +553,14 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-test-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env # Uninstall deployment
 
 ---
 # ============================================================================
 # Pipeline 6: PromoteFeatureDeployment
 # ============================================================================
-# Deploys feature branches to test environment
-# Trigger: Manual promotion event with target=test
+# Deploys feature branches to SIT environment
+# Trigger: Manual promotion event with target=sit
 # Deployment: Helm-based with atomic rollback on failure
 # ============================================================================
 kind: pipeline
@@ -570,13 +570,13 @@ trigger:
   event:
     - promote # Manual trigger only
   target:
-    - test # Test environment
+    - sit # Service-to-service communication environment
   ref:
     - "refs/heads/feature/*"
 
 steps:
   # --------------------------------------------------------------------------
-  # Deploy to Test Environment
+  # Deploy to SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
   # Passes connection strings from Drone secrets to external services
@@ -640,8 +640,8 @@ steps:
 # ============================================================================
 # Pipeline 7: RollbackFeatureDeployment
 # ============================================================================
-# Rolls back feature branch deployment from test environment
-# Trigger: Manual rollback event with target=test
+# Rolls back feature branch deployment from SIT environment
+# Trigger: Manual rollback event with target=sit
 # Uses Helm uninstall to completely remove the deployment
 # ============================================================================
 kind: pipeline
@@ -651,13 +651,13 @@ trigger:
   event:
     - rollback # Manual trigger only
   target:
-    - test
+    - sit
   ref:
     - "refs/heads/feature/*"
 
 steps:
   # --------------------------------------------------------------------------
-  # Rollback from Test Environment
+  # Rollback from SIT environment
   # --------------------------------------------------------------------------
   # Uses Helm uninstall to completely remove the feature deployment
   # --------------------------------------------------------------------------
@@ -686,8 +686,8 @@ trigger:
   event:
     - promote # Manual trigger only
   target:
-    - staging # Staging environment
-    - production # Production environment
+    - uat # User Acceptance environment
+    - prd # Production environment
   ref:
     - "refs/tags/*" # Only tagged releases
 

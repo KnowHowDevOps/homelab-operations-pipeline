@@ -5,7 +5,7 @@
 #   1. VerifyCode               - Code quality, tests, and static analysis
 #   2. PublishArtifacts         - Maven artifacts to Nexus repository
 #   3. PublishDockerImage       - Container images to registry
-#   4. PromoteFeatureDeployment - Feature branch deployments to test environment
+#   4. PromoteFeatureDeployment - Feature branch deployments to SIT environment
 #   5. RollbackFeatureDeployment- Rollback feature deployments
 #   6. PromoteDeployment        - Release deployments to staging/production
 #   7. RollbackDeployment       - Rollback release deployments
@@ -408,8 +408,8 @@ steps:
 # ============================================================================
 # Pipeline 4: PromoteFeatureDeployment
 # ============================================================================
-# Deploys feature branches to test environment
-# Trigger: Manual promotion event with target=test
+# Deploys feature branches to SIT environment
+# Trigger: Manual promotion event with target=sit
 # Deployment: Helm-based with atomic rollback on failure
 # ============================================================================
 kind: pipeline
@@ -419,13 +419,13 @@ trigger:
   event:
     - promote # Manual trigger only
   target:
-    - test # Test environment
+    - sit # Service-to-service communication environment
   ref:
     - "refs/heads/feature/*"
 
 steps:
   # --------------------------------------------------------------------------
-  # Deploy to Test Environment
+  # Deploy to SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
   # Deploys service with standardized port 8080 configuration
@@ -470,8 +470,8 @@ steps:
 # ============================================================================
 # Pipeline 5: RollbackFeatureDeployment
 # ============================================================================
-# Rolls back feature branch deployment from test environment
-# Trigger: Manual rollback event with target=test
+# Rolls back feature branch deployment from SIT environment
+# Trigger: Manual rollback event with target=sit
 # Uses Helm uninstall to completely remove the deployment
 # ============================================================================
 kind: pipeline
@@ -481,13 +481,13 @@ trigger:
   event:
     - rollback # Manual trigger only
   target:
-    - test
+    - sit
   ref:
     - "refs/heads/feature/*"
 
 steps:
   # --------------------------------------------------------------------------
-  # Rollback from Test Environment
+  # Rollback from SIT environment
   # --------------------------------------------------------------------------
   # Uses Helm uninstall to completely remove the feature deployment
   # --------------------------------------------------------------------------
@@ -516,8 +516,8 @@ trigger:
   event:
     - promote # Manual trigger only
   target:
-    - staging # Staging environment
-    - production # Production environment
+    - uat # User Acceptance environment
+    - prd # Production environment
   ref:
     - "refs/tags/*" # Only tagged releases
 
