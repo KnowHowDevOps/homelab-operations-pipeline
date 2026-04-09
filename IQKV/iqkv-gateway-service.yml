@@ -1,5 +1,5 @@
 # =====================================================================================
-# IAM Service - Drone CI/CD Pipeline
+# Service - Drone CI/CD Pipeline
 # =====================================================================================
 # Pipeline Flow:
 #   1. VerifyCode                       - Code quality, tests, and static analysis
@@ -11,11 +11,15 @@
 #   7. RollbackFeatureDeployment        - Rollback feature deployments
 #   8. PromoteDeployment                - Release deployments to staging/production
 #   9. RollbackDeployment               - Rollback release deployments
-#   10. ReleasePackage                  - Automated version management
+#   10. ReleasePackage                   - Automated version management
 # ======================================================================================
 
 # ============================================================================
 # Pipeline 1: VerifyCode
+# ============================================================================
+# Validates code quality, runs tests, and performs static analysis
+# Triggers: Push to dev, feature/*, rfc/*, poc/*, bugfix/*, improvement/*,
+#          prerelease/*, library/*, hotfix/*, *.*.x branches and tags
 # ============================================================================
 kind: pipeline
 name: VerifyCode
@@ -51,9 +55,6 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  # --------------------------------------------------------------------------
-  # Step 1: Code Coverage Gate
-  # --------------------------------------------------------------------------
   - name: code-coverage-gate
     image: cicdtools/pipeline-runner
     pull: never
@@ -73,9 +74,6 @@ steps:
       - mvn dependency:resolve -U -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-  # --------------------------------------------------------------------------
-  # Step 2: Static Analysis Gate
-  # --------------------------------------------------------------------------
   - name: static-analysis-gate
     depends_on:
       - code-coverage-gate
@@ -101,9 +99,6 @@ steps:
       - pmd check --minimum-priority High -d src -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
       - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=../spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
-  # --------------------------------------------------------------------------
-  # Step 3: Slack Notification (Failure Only)
-  # --------------------------------------------------------------------------
   - name: notify-slack-on-failure
     image: plugins/slack
     settings:
@@ -149,9 +144,6 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  # --------------------------------------------------------------------------
-  # Step 1: Publish SNAPSHOT JAR
-  # --------------------------------------------------------------------------
   - name: publish-snapshot-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -172,9 +164,6 @@ steps:
           - "prerelease/*"
           - "*.*.x"
 
-  # --------------------------------------------------------------------------
-  # Step 2: Publish Release JAR
-  # --------------------------------------------------------------------------
   - name: publish-release-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -192,9 +181,6 @@ steps:
       ref:
         - "refs/tags/*"
 
-  # --------------------------------------------------------------------------
-  # Step 3: Create GitHub Release
-  # --------------------------------------------------------------------------
   - name: create-github-release
     depends_on:
       - publish-release-jar
@@ -219,9 +205,6 @@ steps:
       ref:
         - "refs/tags/*"
 
-  # --------------------------------------------------------------------------
-  # Step 4: Slack Notification
-  # --------------------------------------------------------------------------
   - name: notify-slack
     image: plugins/slack
     settings:
@@ -270,9 +253,6 @@ volumes:
       path: /app/.pnpm-store
 
 steps:
-  # --------------------------------------------------------------------------
-  # Step 1: Package JAR File
-  # --------------------------------------------------------------------------
   - name: package-jar
     image: cicdtools/pipeline-runner
     pull: never
@@ -288,9 +268,6 @@ steps:
       - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/JDK.alpine-simple.dockerfile
       - mvn package -Dstyle.color=always -DskipTests -Dmaven.test.skip=true -Dmaven.javadoc.skip=true -Dcheckstyle.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
-  # --------------------------------------------------------------------------
-  # Step 2: Build WIP Branch Docker Image
-  # --------------------------------------------------------------------------
   - name: build-wip-container
     depends_on:
       - package-jar
@@ -311,6 +288,8 @@ steps:
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH}
+      cache_from:
+        - "${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}:${DRONE_BRANCH}"
       purge: true
       compress: true
     when:
@@ -318,9 +297,6 @@ steps:
         include:
           - "wip"
 
-  # --------------------------------------------------------------------------
-  # Step 3: Build Feature Branch Docker Image
-  # --------------------------------------------------------------------------
   - name: build-container-with-feature
     depends_on:
       - package-jar
@@ -346,9 +322,6 @@ steps:
         include:
           - "feature/*"
 
-  # --------------------------------------------------------------------------
-  # Step 4: Build Release Docker Image
-  # --------------------------------------------------------------------------
   - name: build-container-release
     depends_on:
       - package-jar
@@ -391,42 +364,24 @@ depends_on:
   - PublishDockerImage
 
 steps:
-  # --------------------------------------------------------------------------
-  # Deploy to SIT Environment
-  # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
     pull: never
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
-      INFRA_POSTGRESQL_PASSWORD:
-        from_secret: INFRA_POSTGRESQL_PASSWORD
-      INFRA_RABBITMQ_PASSWORD:
-        from_secret: INFRA_RABBITMQ_PASSWORD
-      SMTP_USERNAME:
-        from_secret: SMTP_USERNAME
-      SMTP_PASSWORD:
-        from_secret: SMTP_PASSWORD
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-test.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
-          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
-          --set config.mail.username=$${SMTP_USERNAME} \
-          --set config.mail.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-sit-env \
+          --namespace iqkv-sit-env \
           --create-namespace
 
-  # --------------------------------------------------------------------------
-  # Slack Notification
-  # --------------------------------------------------------------------------
   - name: notify-slack
     image: plugins/slack
     settings:
@@ -470,8 +425,8 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env
 
 ---
 # ============================================================================
@@ -495,27 +450,15 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
-      INFRA_POSTGRESQL_PASSWORD:
-        from_secret: INFRA_POSTGRESQL_PASSWORD
-      INFRA_RABBITMQ_PASSWORD:
-        from_secret: INFRA_RABBITMQ_PASSWORD
-      SMTP_USERNAME:
-        from_secret: SMTP_USERNAME
-      SMTP_PASSWORD:
-        from_secret: SMTP_PASSWORD
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
-          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
-          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
-          --set config.mail.username=$${SMTP_USERNAME} \
-          --set config.mail.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   - name: notify-slack
@@ -561,8 +504,8 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
@@ -587,27 +530,15 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
-      INFRA_POSTGRESQL_PASSWORD:
-        from_secret: INFRA_POSTGRESQL_PASSWORD
-      INFRA_RABBITMQ_PASSWORD:
-        from_secret: INFRA_RABBITMQ_PASSWORD
-      SMTP_USERNAME:
-        from_secret: SMTP_USERNAME
-      SMTP_PASSWORD:
-        from_secret: SMTP_PASSWORD
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
-          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
-          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
-          --set config.mail.username=$${SMTP_USERNAME} \
-          --set config.mail.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   - name: notify-slack
@@ -654,8 +585,8 @@ steps:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
@@ -694,34 +625,34 @@ steps:
         from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
       - export RELEASE_VERSION=$(jq -r .version package.json | cut -d '-' -f 1)
-      - export INCREMENT_COMMAND="increment_version -m $${RELEASE_VERSION}"
-      - export SNAPSHOT_VERSION=$($${INCREMENT_COMMAND})
-      - echo Prepare new version $${RELEASE_VERSION}
-      - export NEXT_SNAPSHOT=$${SNAPSHOT_VERSION}-SNAPSHOT
-      - export GIT_AUTHOR_NAME="$${SVC_BUILD_GIT_USERNAME}"
-      - export GIT_AUTHOR_EMAIL="$${SVC_BUILD_GIT_EMAIL}"
-      - export GIT_COMMITTER_NAME="$${SVC_BUILD_GIT_USERNAME}"
-      - export GIT_COMMITTER_EMAIL=$${SVC_BUILD_GIT_EMAIL}
+      - export INCREMENT_COMMAND="increment_version -m ${RELEASE_VERSION}"
+      - export SNAPSHOT_VERSION=$(${INCREMENT_COMMAND})
+      - echo Prepare new version ${RELEASE_VERSION}
+      - export NEXT_SNAPSHOT=${SNAPSHOT_VERSION}-SNAPSHOT
+      - export GIT_AUTHOR_NAME="${SVC_BUILD_GIT_USERNAME}"
+      - export GIT_AUTHOR_EMAIL="${SVC_BUILD_GIT_EMAIL}"
+      - export GIT_COMMITTER_NAME="${SVC_BUILD_GIT_USERNAME}"
+      - export GIT_COMMITTER_EMAIL=${SVC_BUILD_GIT_EMAIL}
       - git remote set-url --push origin ${DRONE_GIT_SSH_URL}
-      - git checkout -b v$${RELEASE_VERSION}
+      - git checkout -b v${RELEASE_VERSION}
       - mvn versions:set -DremoveSnapshot
-      - mvn versions:set -DnewVersion=$${RELEASE_VERSION}
+      - mvn versions:set -DnewVersion=${RELEASE_VERSION}
       - mvn versions:update-parent
       - >-
-        git commit -a -m "chore: bump v$${RELEASE_VERSION}"
-      - git tag $${RELEASE_VERSION} && git push origin $${RELEASE_VERSION}
-      - echo "✅ Release tag $${RELEASE_VERSION} was created."
+        git commit -a -m "chore: bump v${RELEASE_VERSION}"
+      - git tag ${RELEASE_VERSION} && git push origin ${RELEASE_VERSION}
+      - echo "✅ Release tag ${RELEASE_VERSION} was created."
       - sleep 10
-      - git tag -d $${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v$${RELEASE_VERSION}
-      - mvn versions:set -DnewVersion=$${NEXT_SNAPSHOT}
+      - git tag -d ${RELEASE_VERSION} && git checkout ${DRONE_COMMIT_BRANCH} && git branch -D v${RELEASE_VERSION}
+      - mvn versions:set -DnewVersion=${NEXT_SNAPSHOT}
       - mvn versions:update-parent -DallowSnapshots=true
       - pnpm install && git config --unset core.hooksPath
       - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json
       - git fetch --tags
       - release-it --ci --no-increment -VV
-      - npm version $${SNAPSHOT_VERSION} --no-git-tag-version
+      - npm version ${SNAPSHOT_VERSION} --no-git-tag-version
       - >-
-        git commit -a -m "chore: create new $${NEXT_SNAPSHOT}"
+        git commit -a -m "chore: create new ${NEXT_SNAPSHOT}"
       - git push origin ${DRONE_COMMIT_BRANCH}
-      - echo "✅ Started $${NEXT_SNAPSHOT}."
-      - echo "🚀 Good job, new version $${RELEASE_VERSION} was released successfully."
+      - echo "✅ Started ${NEXT_SNAPSHOT}."
+      - echo "🚀 Good job, new version ${RELEASE_VERSION} was released successfully."

@@ -293,7 +293,7 @@ steps:
   # Step 4: Deploy to SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
-  # Deploys to iqkvdev-sit-env namespace with dev-specific configuration
+  # Deploys to iqkv-sit-env namespace with dev-specific configuration
   # --------------------------------------------------------------------------
   - name: deploy
     image: cicdtools/pipeline-runner
@@ -304,13 +304,13 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true # Uninstall deployment
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-test.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --namespace iqkvdev-sit-env \
+          --namespace iqkv-sit-env \
           --create-namespace
     depends_on:
       - build-container
@@ -374,4 +374,4 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env # Uninstall deployment

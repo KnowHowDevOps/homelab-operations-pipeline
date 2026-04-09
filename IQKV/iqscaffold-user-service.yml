@@ -491,7 +491,7 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true # Uninstall deployment
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
@@ -507,7 +507,7 @@ steps:
           --set config.oauth2.google.clientSecret=$${GOOGLE_OAUTH2_CLIENT_SECRET} \
           --set config.email.smtp.username=$${SMTP_USERNAME} \
           --set config.email.smtp.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-sit-env \
+          --namespace iqkv-sit-env \
           --create-namespace
 
   # --------------------------------------------------------------------------
@@ -568,7 +568,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env # Uninstall deployment
 
 ---
 # ============================================================================
@@ -641,7 +641,7 @@ steps:
           --set config.oauth2.google.clientSecret=$${GOOGLE_OAUTH2_CLIENT_SECRET} \
           --set config.email.smtp.username=$${SMTP_USERNAME} \
           --set config.email.smtp.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   # --------------------------------------------------------------------------
@@ -702,7 +702,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---
 # ============================================================================
@@ -778,7 +778,7 @@ steps:
           --set config.oauth2.google.clientSecret=$${GOOGLE_OAUTH2_CLIENT_SECRET} \
           --set config.email.smtp.username=$${SMTP_USERNAME} \
           --set config.email.smtp.password=$${SMTP_PASSWORD} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
           --create-namespace
 
@@ -841,7 +841,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---
 # ============================================================================

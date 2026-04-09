@@ -745,7 +745,7 @@ steps:
       - git submodule update --init --recursive --remote
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqkv-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -798,7 +798,7 @@ steps:
     commands:
       - git submodule update --init --recursive --remote
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
@@ -839,7 +839,7 @@ steps:
       - git submodule update --init --recursive --remote
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqkv-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -893,7 +893,7 @@ steps:
     commands:
       - git submodule update --init --recursive --remote
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================

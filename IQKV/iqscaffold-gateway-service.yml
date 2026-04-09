@@ -373,7 +373,7 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
@@ -381,7 +381,7 @@ steps:
           --set image.tag=${DRONE_BRANCH} \
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-sit-env \
+          --namespace iqkv-sit-env \
           --create-namespace
 
   - name: notify-slack
@@ -428,7 +428,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env
 
 ---
 # ============================================================================
@@ -466,7 +466,7 @@ steps:
           --set image.tag=${DRONE_BRANCH:8} \
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   - name: notify-slack
@@ -513,7 +513,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================
@@ -552,7 +552,7 @@ steps:
           --set image.tag=${DRONE_TAG} \
           --set infraServices.redis.password=$${INFRA_REDIS_PASSWORD} \
           --set config.gateway.security.jwt.secret=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   - name: notify-slack
@@ -600,7 +600,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
 # ============================================================================

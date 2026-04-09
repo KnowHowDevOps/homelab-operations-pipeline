@@ -479,7 +479,7 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
       - kubectl version --output=yaml # Display Kubernetes version
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env || true # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true # Uninstall deployment
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
@@ -488,7 +488,7 @@ steps:
           --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-sit-env \
+          --namespace iqkv-sit-env \
           --create-namespace
 
   # --------------------------------------------------------------------------
@@ -549,7 +549,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-sit-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env # Uninstall deployment
 
 ---
 # ============================================================================
@@ -601,7 +601,7 @@ steps:
           --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   # --------------------------------------------------------------------------
@@ -662,7 +662,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---
 # ============================================================================
@@ -717,7 +717,7 @@ steps:
           --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
           --set config.jwt.secretKey=$${JWT_SECRET_KEY} \
-          --namespace iqkvdev-${DRONE_DEPLOY_TO}-env \
+          --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
   # --------------------------------------------------------------------------
@@ -779,7 +779,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkvdev-${DRONE_DEPLOY_TO}-env # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env # Uninstall deployment
 
 ---
 # ============================================================================
