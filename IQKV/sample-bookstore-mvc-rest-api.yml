@@ -353,8 +353,8 @@ trigger:
   event:
     - promote
   target:
-    - staging
-    - production
+    - uat
+    - prd
   ref:
     - "refs/tags/*"
 
@@ -398,8 +398,8 @@ trigger:
   event:
     - rollback
   target:
-    - staging
-    - production
+    - uat
+    - prd
   ref:
     - "refs/tags/*"
 

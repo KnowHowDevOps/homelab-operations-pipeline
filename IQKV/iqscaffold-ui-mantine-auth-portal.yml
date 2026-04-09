@@ -308,7 +308,7 @@ steps:
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
-          --values ./values-test.yaml \
+          --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \
           --namespace iqkv-sit-env \
           --create-namespace

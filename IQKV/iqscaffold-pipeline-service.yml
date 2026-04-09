@@ -483,7 +483,7 @@ steps:
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
-          --values ./values-test.yaml \
+          --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \
           --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
           --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
@@ -760,8 +760,8 @@ trigger:
   event:
     - rollback # Manual trigger only
   target:
-    - staging
-    - production
+    - uat
+    - prd
   ref:
     - "refs/tags/*"
 

@@ -878,8 +878,8 @@ trigger:
   event:
     - rollback # Manual trigger only
   target:
-    - staging
-    - production
+    - uat
+    - prd
   ref:
     - "refs/tags/*"
 
