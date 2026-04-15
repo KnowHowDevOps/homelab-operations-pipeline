@@ -1,5 +1,5 @@
 # ============================================================================
-# IQ Scaffold Microservices Platform - Drone CI/CD Pipeline
+# IQ  Key Value Microservices Platform - Drone CI/CD Pipeline
 # ============================================================================
 # Pipeline Flow:
 #   1. VerifyCode        - Code quality, tests, and static analysis
