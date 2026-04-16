@@ -290,15 +290,24 @@ steps:
     environment:
       HELM_CHARTS_REPOSITORY:
         from_secret: HELM_CHARTS_REPOSITORY
+      RESEND_API_KEY:
+        from_secret: MESSAGING_EMAIL_RESEND_API_KEY
+      RESEND_FROM:
+        from_secret: MESSAGING_EMAIL_RESEND_FROM
+      RESEND_TO:
+        from_secret: MESSAGING_EMAIL_RESEND_TO
     commands:
-      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true # Uninstall deployment
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \
+          --set "app.env.RESEND_API_KEY=${RESEND_API_KEY}" \
+          --set "app.env.RESEND_FROM=${RESEND_FROM}" \
+          --set "app.env.RESEND_TO=${RESEND_TO}" \
           --namespace iqkv-sit-env \
           --create-namespace
     depends_on:
