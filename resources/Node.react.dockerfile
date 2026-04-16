@@ -1,15 +1,15 @@
 # ---------------------------------------------------------------------------
-# Generic Node.js application image
-# All values are parametrizable via build args.
-# For framework-specific variants see:
-#   Node.react.dockerfile  – React / Vite SPA
-#   Node.astro.dockerfile  – Astro (static or SSR)
+# React / Vite SPA image
+# Builds the app with Node.js, serves the static output via Nginx.
+# Defaults are tuned for Vite (output: dist/).
+# Override DIST_DIR=build for Create React App projects.
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Build args – override any of these from the pipeline
 # ---------------------------------------------------------------------------
 ARG BASE_IMAGE='know-how.download/library/nodejs-runner'
+ARG NGINX_IMAGE='know-how.download/library/nginx-runner'
 
 # Package manager command used to install dependencies
 ARG PKG_MANAGER='pnpm'
@@ -17,14 +17,11 @@ ARG PKG_MANAGER='pnpm'
 # Script name passed to the package manager for the build step
 ARG BUILD_SCRIPT='build'
 
-# Script name passed to the package manager to start the app at runtime
-ARG START_SCRIPT='start'
+# Vite outputs to dist/ by default; CRA uses build/
+ARG DIST_DIR='dist'
 
-# Working directory inside the container
+# Working directory inside the build container
 ARG WORKDIR='/opt/app'
-
-# Port the application listens on
-ARG APP_PORT='3000'
 
 # ---------------------------------------------------------------------------
 # Stage 1: build
@@ -49,26 +46,20 @@ RUN ${PKG_MANAGER} install --frozen-lockfile
 RUN ${PKG_MANAGER} run ${BUILD_SCRIPT}
 
 # ---------------------------------------------------------------------------
-# Stage 2: runtime
+# Stage 2: Nginx static runtime
 # ---------------------------------------------------------------------------
-FROM $BASE_IMAGE AS runtime
+FROM $NGINX_IMAGE AS runtime
 
 LABEL maintainer="maintainer@knowhowto.dev"
 
-ARG PKG_MANAGER
-ARG START_SCRIPT
+ARG DIST_DIR
 ARG WORKDIR
-ARG APP_PORT
 
 ARG VCS_REFERENCE
 ARG BUILD_VERSION_REFERENCE
 ENV APPLICATION_VCS_REFERENCE=${VCS_REFERENCE}
 ENV APPLICATION_BUILD_VERSION=${BUILD_VERSION_REFERENCE}
 
-WORKDIR ${WORKDIR}
+COPY --from=builder ${WORKDIR}/${DIST_DIR} /usr/share/nginx/html
 
-COPY --from=builder ${WORKDIR} ${WORKDIR}
-
-EXPOSE ${APP_PORT}
-
-CMD ${PKG_MANAGER} run ${START_SCRIPT}
+ENTRYPOINT ["nginx", "-g", "daemon off;"]

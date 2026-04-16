@@ -1,15 +1,18 @@
 # ---------------------------------------------------------------------------
-# Generic Node.js application image
-# All values are parametrizable via build args.
-# For framework-specific variants see:
-#   Node.react.dockerfile  – React / Vite SPA
-#   Node.astro.dockerfile  – Astro (static or SSR)
+# Astro application image
+# Supports both Astro output modes:
+#   static (default) – built to dist/, served by Nginx
+#   server / hybrid  – SSR, served by Node.js
+#
+# Set ASTRO_OUTPUT=server (or hybrid) and the runtime stage switches
+# automatically to Node.js instead of Nginx.
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Build args – override any of these from the pipeline
 # ---------------------------------------------------------------------------
 ARG BASE_IMAGE='know-how.download/library/nodejs-runner'
+ARG NGINX_IMAGE='know-how.download/library/nginx-runner'
 
 # Package manager command used to install dependencies
 ARG PKG_MANAGER='pnpm'
@@ -17,14 +20,21 @@ ARG PKG_MANAGER='pnpm'
 # Script name passed to the package manager for the build step
 ARG BUILD_SCRIPT='build'
 
-# Script name passed to the package manager to start the app at runtime
+# Script name passed to the package manager to start the SSR server
 ARG START_SCRIPT='start'
+
+# Astro output mode: static | server | hybrid
+# Must match the `output` value in astro.config.*
+ARG ASTRO_OUTPUT='static'
+
+# Static build output directory (used when ASTRO_OUTPUT=static)
+ARG DIST_DIR='dist'
+
+# Port the SSR server listens on (used when ASTRO_OUTPUT=server|hybrid)
+ARG APP_PORT='4321'
 
 # Working directory inside the container
 ARG WORKDIR='/opt/app'
-
-# Port the application listens on
-ARG APP_PORT='3000'
 
 # ---------------------------------------------------------------------------
 # Stage 1: build
@@ -34,11 +44,15 @@ FROM $BASE_IMAGE AS builder
 ARG PKG_MANAGER
 ARG BUILD_SCRIPT
 ARG WORKDIR
+ARG ASTRO_OUTPUT
 
 ARG VCS_REFERENCE
 ARG BUILD_VERSION_REFERENCE
 ENV APPLICATION_VCS_REFERENCE=${VCS_REFERENCE}
 ENV APPLICATION_BUILD_VERSION=${BUILD_VERSION_REFERENCE}
+
+# Expose the output mode to the Astro build if needed by astro.config
+ENV ASTRO_OUTPUT=${ASTRO_OUTPUT}
 
 WORKDIR ${WORKDIR}
 
@@ -49,9 +63,28 @@ RUN ${PKG_MANAGER} install --frozen-lockfile
 RUN ${PKG_MANAGER} run ${BUILD_SCRIPT}
 
 # ---------------------------------------------------------------------------
-# Stage 2: runtime
+# Stage 2a: Nginx static runtime  (ASTRO_OUTPUT=static)
 # ---------------------------------------------------------------------------
-FROM $BASE_IMAGE AS runtime
+FROM $NGINX_IMAGE AS runtime-static
+
+LABEL maintainer="maintainer@knowhowto.dev"
+
+ARG DIST_DIR
+ARG WORKDIR
+
+ARG VCS_REFERENCE
+ARG BUILD_VERSION_REFERENCE
+ENV APPLICATION_VCS_REFERENCE=${VCS_REFERENCE}
+ENV APPLICATION_BUILD_VERSION=${BUILD_VERSION_REFERENCE}
+
+COPY --from=builder ${WORKDIR}/${DIST_DIR} /usr/share/nginx/html
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+# ---------------------------------------------------------------------------
+# Stage 2b: Node.js SSR runtime  (ASTRO_OUTPUT=server or hybrid)
+# ---------------------------------------------------------------------------
+FROM $BASE_IMAGE AS runtime-ssr
 
 LABEL maintainer="maintainer@knowhowto.dev"
 

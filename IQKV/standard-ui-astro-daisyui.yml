@@ -162,7 +162,7 @@ steps:
       - export GIT_COMMITTER_EMAIL=${SVC_BUILD_GIT_EMAIL}
       - git config user.name "${SVC_BUILD_GIT_USERNAME}"
       - git config user.email ${SVC_BUILD_GIT_EMAIL}
-      - npm unpublish -f @iqscaffold/standard-saas-landing-kit@0.0.0 || true # Remove development version
+      - npm unpublish -f @iqkv/standard-ui-astro-daisyui@0.0.0 || true # Remove development version
       - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks || true # Publish with force flag
     when:
       branch:
@@ -205,10 +205,9 @@ steps:
 # Builds and deploys wip branch to dev environment using containerized approach
 # Triggers: Push to wip branch only
 # Process:
-#   1. Downloads Nodejs Dockerfile template
-#   2. Builds application artifacts
-#   3. Creates container image
-#   4. Deploys to Kubernetes using Helm
+#   1. Downloads Node.astro.dockerfile template
+#   2. Builds container image (multi-stage: install → build → runtime-ssr)
+#   3. Deploys to Kubernetes using Helm
 # ============================================================================
 kind: pipeline
 name: DeployWorkInProgress
@@ -224,46 +223,33 @@ trigger:
 depends_on:
   - PublishArtifacts # Ensures artifacts are published first
 
-# Persistent volumes for dependency caching
-volumes:
-  - name: pnpm-store
-    host:
-      path: /app/.pnpm-store
-
 steps:
   # --------------------------------------------------------------------------
   # Step 1: Download Dockerfile Template
   # --------------------------------------------------------------------------
-  # Downloads standardized Nodejs Dockerfile for static web applications
+  # Downloads the Astro-specific Dockerfile from the shared pipeline resources.
+  # This Dockerfile supports both static and SSR output modes via build args.
   # --------------------------------------------------------------------------
   - name: download-dockerfile
     image: cicdtools/pipeline-runner
     pull: never
     commands:
-      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/Node.dockerfile # Download Nodejs Dockerfile template
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/Node.astro.dockerfile
 
   # --------------------------------------------------------------------------
-  # Step 2: Build Application
+  # Step 2: Build Container Image
   # --------------------------------------------------------------------------
-  # Builds the frontend application for production deployment
-  # Uses pnpm for consistent dependency management
-  # --------------------------------------------------------------------------
-  - name: build-application
-    image: cicdtools/pipeline-runner
-    pull: never
-    volumes:
-      - name: pnpm-store
-        path: /root/.pnpm-store
-    commands:
-      - pnpm install # Install dependencies
-      - pnpm build # Build production artifacts
-      - ls -la ./dist/
-
-  # --------------------------------------------------------------------------
-  # Step 3: Build Container Image
-  # --------------------------------------------------------------------------
-  # Creates Docker image with built application using Nodejs base
-  # Image naming: know-how.download/{owner}/{repo}:{branch}
+  # Multi-stage build: the Dockerfile handles dependency installation and
+  # the application build internally (no separate build-application step needed).
+  #
+  # Key build args for this project:
+  #   ASTRO_OUTPUT=server   – matches output: "server" in astro.config.mjs
+  #   START_SCRIPT=start    – runs "node dist/server/entry.mjs" via pnpm start
+  #   APP_PORT=4321         – default Astro SSR port
+  #
+  # Target: runtime-ssr    – copies full dist/ and starts the Node.js server.
+  #                          Use runtime-static + ASTRO_OUTPUT=static for
+  #                          purely static Astro sites served by Nginx.
   # --------------------------------------------------------------------------
   - name: build-container
     image: plugins/docker
@@ -280,15 +266,20 @@ steps:
       force_tag: true
       build_args:
         - BASE_IMAGE=know-how.download/library/nodejs-runner
+        - NGINX_IMAGE=know-how.download/library/nginx-runner
+        - ASTRO_OUTPUT=server
+        - START_SCRIPT=start
+        - APP_PORT=4321
         - VCS_REFERENCE=${DRONE_COMMIT}
-        - SOURCE_DIR=./dist/
+        - BUILD_VERSION_REFERENCE=${DRONE_TAG}
+      target: runtime-ssr
       tags:
-        - ${DRONE_BRANCH} # Use branch name as tag
+        - ${DRONE_BRANCH}
     depends_on:
-      - build-application
+      - download-dockerfile
 
   # --------------------------------------------------------------------------
-  # Step 4: Deploy to SIT Environment
+  # Step 3: Deploy to SIT Environment
   # --------------------------------------------------------------------------
   # Uses Helm for atomic deployment with automatic rollback on failure
   # Deploys to iqkv-sit-env namespace with dev-specific configuration
@@ -314,7 +305,7 @@ steps:
       - build-container
 
   # --------------------------------------------------------------------------
-  # Step 5: Slack Notification
+  # Step 4: Slack Notification
   # --------------------------------------------------------------------------
   # Notifies team of deployment success/failure with appropriate emojis
   # --------------------------------------------------------------------------
