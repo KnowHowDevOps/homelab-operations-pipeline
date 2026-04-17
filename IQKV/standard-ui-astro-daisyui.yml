@@ -305,9 +305,9 @@ steps:
           --values ./values.yaml \
           --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --set "app.env.RESEND_API_KEY=${RESEND_API_KEY}" \
-          --set "app.env.RESEND_FROM=${RESEND_FROM}" \
-          --set "app.env.RESEND_TO=${RESEND_TO}" \
+          --set "app.env.RESEND_API_KEY=$${RESEND_API_KEY}" \
+          --set "app.env.RESEND_FROM=$${RESEND_FROM}" \
+          --set "app.env.RESEND_TO=$${RESEND_TO}" \
           --namespace iqkv-sit-env \
           --create-namespace
     depends_on:
