@@ -13,7 +13,7 @@ WORKDIR /opt/app
 COPY ./target/*.jar app.jar
 
 # Try to extract JAR layers, create marker file on success
-# Using new Spring Boot 3.2+ syntax
+# Using new Spring Boot 4.2+ syntax
 RUN (java -Djarmode=tools -jar app.jar extract --layers --destination extracted && \
      touch extracted/.layered) || \
     (echo "WARN: Layer extraction not supported, using monolithic JAR" && \

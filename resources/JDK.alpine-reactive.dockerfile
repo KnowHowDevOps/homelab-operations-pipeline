@@ -13,7 +13,7 @@ WORKDIR /opt/app
 COPY ./target/*.jar app.jar
 
 # Extract JAR layers for optimal Docker layer caching
-# Using new Spring Boot 3.2+ syntax
+# Using new Spring Boot 4.2+ syntax
 # Note: Reactive apps may have different layer structure
 RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted || \
     (echo "Layer extraction failed, falling back to list-layers" && \
