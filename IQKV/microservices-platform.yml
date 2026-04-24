@@ -114,7 +114,7 @@ steps:
       - mvn org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -Dmdep.prependGroupId=true -Dstyle.color=always -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
       # SonarQube analysis with quality gate (blocks on failure)
-      # - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.5.0.6356:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
+      # - mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.6.0.6792:sonar '-Dsonar.java.libraries=target/dependency/*.jar' '-Dsonar.java.test.libraries=target/classes,target/dependency/*.jar' -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.host.url=$SONAR_HOST -Dsonar.token=$SONAR_TOKEN -Dsonar.projectKey=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dsonar.projectName=${DRONE_REPO_OWNER}:${DRONE_REPO_NAME} -Dstyle.color=always -Dmaven.javadoc.skip=true --batch-mode -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
       # PMD analysis for each microservice (High priority violations only)
       - pmd check --minimum-priority High -d ./iqscaffold-user-service -f text -R https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/pmd/ruleset.xml
@@ -126,7 +126,7 @@ steps:
 
       # SpotBugs analysis with custom exclusions
       - wget -O /drone/spotbugs-exclude.xml https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/spotbugs-exclude.xml
-      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.2:check -s /drone/maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=/drone/spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
+      - mvn com.github.spotbugs:spotbugs-maven-plugin:4.9.8.3:check -s /drone/maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD  -Dspotbugs.xmlOutput=true -Dspotbugs.failOnError=true -Dspotbugs.excludeFilterFile=/drone/spotbugs-exclude.xml -Dspotbugs.includeTests=true -Dstyle.color=always
 
   # --------------------------------------------------------------------------
   # Step 3: Slack Notification (Failure Only)
