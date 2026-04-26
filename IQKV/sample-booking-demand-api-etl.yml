@@ -113,7 +113,7 @@ services:
       TZ: UTC
 
   - name: rabbitmq
-    image: rabbitmq:management-alpine
+    image: rabbitmq:3-management-alpine
     environment:
       RABBITMQ_DEFAULT_USER: svc_testing
       RABBITMQ_DEFAULT_PASS: svc_testing
