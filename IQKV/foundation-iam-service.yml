@@ -5,14 +5,14 @@
 #   1. VerifyCode                       - Code quality, tests, and static analysis
 #   2. PublishArtifacts                 - Maven artifacts to Nexus repository
 #   3. PublishDockerImage               - Container images to registry
-#   4. DeployWorkInProgress        - Wip branch deployments to dev environment
-#   5. RollbackWorkInProgress      - Rollback wip deployments
+#   4. DeployWorkInProgress             - Wip branch deployments to dev environment
+#   5. RollbackWorkInProgress           - Rollback wip deployments
 #   6. PromoteFeatureDeployment         - Feature branch deployments to SIT environment
 #   7. RollbackFeatureDeployment        - Rollback feature deployments
 #   8. PromoteDeployment                - Release deployments to staging/production
 #   9. RollbackDeployment               - Rollback release deployments
 #   10. ReleasePackage                  - Automated version management
-# ======================================================================================
+# =====================================================================================
 
 # ============================================================================
 # Pipeline 1: VerifyCode
