@@ -417,10 +417,10 @@ steps:
           --values ./values.yaml \
           --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \
-          --set-string infraServices.postgresql.password="${INFRA_POSTGRESQL_PASSWORD}" \
-          --set-string infraServices.rabbitmq.password="${INFRA_RABBITMQ_PASSWORD}" \
-          --set-string config.mail.username="${SMTP_USERNAME}" \
-          --set-string config.mail.password="${SMTP_PASSWORD}" \
+          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
+          --set config.mail.username=$${SMTP_USERNAME} \
+          --set config.mail.password=$${SMTP_PASSWORD} \
           --namespace iqkv-sit-env \
           --create-namespace
 
@@ -511,10 +511,10 @@ steps:
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
-          --set-string infraServices.postgresql.password="${INFRA_POSTGRESQL_PASSWORD}" \
-          --set-string infraServices.rabbitmq.password="${INFRA_RABBITMQ_PASSWORD}" \
-          --set-string config.mail.username="${SMTP_USERNAME}" \
-          --set-string config.mail.password="${SMTP_PASSWORD}" \
+          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
+          --set config.mail.username=$${SMTP_USERNAME} \
+          --set config.mail.password=$${SMTP_PASSWORD} \
           --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
@@ -603,10 +603,10 @@ steps:
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
-          --set-string infraServices.postgresql.password="${INFRA_POSTGRESQL_PASSWORD}" \
-          --set-string infraServices.rabbitmq.password="${INFRA_RABBITMQ_PASSWORD}" \
-          --set-string config.mail.username="${SMTP_USERNAME}" \
-          --set-string config.mail.password="${SMTP_PASSWORD}" \
+          --set infraServices.postgresql.password=$${INFRA_POSTGRESQL_PASSWORD} \
+          --set infraServices.rabbitmq.password=$${INFRA_RABBITMQ_PASSWORD} \
+          --set config.mail.username=$${SMTP_USERNAME} \
+          --set config.mail.password=$${SMTP_PASSWORD} \
           --namespace iqkv-${DRONE_DEPLOY_TO}-env \
           --create-namespace
 
