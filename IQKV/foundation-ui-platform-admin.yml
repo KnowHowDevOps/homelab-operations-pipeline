@@ -164,7 +164,7 @@ steps:
       - export GIT_COMMITTER_EMAIL=${SVC_BUILD_GIT_EMAIL}
       - git config user.name "${SVC_BUILD_GIT_USERNAME}"
       - git config user.email ${SVC_BUILD_GIT_EMAIL}
-      - npm unpublish -f @iqkv/foundation-ui-admin-dashboard@0.0.0 || true # Remove development version
+      - npm unpublish -f @iqkv/foundation-ui-platform-admin@0.0.0 || true # Remove development version
       - pnpm publish --publish-branch ${DRONE_BRANCH} --force --no-git-checks || true # Publish with force flag
     when:
       branch:
