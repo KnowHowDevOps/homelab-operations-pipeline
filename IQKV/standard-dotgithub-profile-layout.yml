@@ -24,6 +24,6 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - pip install yamllint && yamllint .
+      - yamllint .
       - pnpm install && pnpm lint
       - pnpm formatter:check
