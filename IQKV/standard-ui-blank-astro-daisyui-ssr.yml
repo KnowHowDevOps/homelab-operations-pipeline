@@ -294,6 +294,8 @@ steps:
         from_secret: MESSAGING_EMAIL_RESEND_API_KEY
       RESEND_FROM:
         from_secret: MESSAGING_EMAIL_RESEND_FROM
+      RESEND_FROM_NAME:
+        from_secret: MESSAGING_EMAIL_RESEND_FROM_NAME
       RESEND_TO:
         from_secret: MESSAGING_EMAIL_RESEND_TO
     commands:
@@ -307,6 +309,7 @@ steps:
           --set image.tag=${DRONE_BRANCH} \
           --set "app.env.RESEND_API_KEY=$${RESEND_API_KEY}" \
           --set "app.env.RESEND_FROM=$${RESEND_FROM}" \
+          --set "app.env.RESEND_FROM_NAME=$${RESEND_FROM_NAME}" \
           --set "app.env.RESEND_TO=$${RESEND_TO}" \
           --namespace iqkv-sit-env \
           --create-namespace
