@@ -14,8 +14,8 @@
 # Validates code quality, runs tests, and performs static analysis
 # Triggers: Push to all branches and tags for comprehensive quality checks
 # Quality Gates:
-#   - Code formatting (Prettier)
-#   - Linting (ESLint)
+#   - Code formatting
+#   - Linting
 #   - Unit tests with coverage
 #   - SonarQube static analysis
 #   - Build verification
