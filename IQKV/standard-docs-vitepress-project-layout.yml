@@ -25,6 +25,6 @@ steps:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
       # - yamllint .
-      - pnpm install && pnpm lint
+      - pnpm install --frozen-lockfile --ignore-scripts && pnpm lint
       - pnpm formatter:check
       - pnpm docs:build

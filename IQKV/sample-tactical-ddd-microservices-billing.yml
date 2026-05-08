@@ -69,7 +69,7 @@ steps:
     commands:
       - javac -version
       - mvn -version
-      - pnpm install && pnpm lint # Frontend linting
+      - pnpm install --frozen-lockfile --ignore-scripts && pnpm lint # Frontend linting
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   # --------------------------------------------------------------------------
@@ -251,7 +251,7 @@ steps:
         from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
       - git checkout -b release
-      - pnpm install && git config --unset core.hooksPath
+      - pnpm install --frozen-lockfile --ignore-scripts && git config --unset core.hooksPath
       - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json
       - git fetch --tags
       - release-it --ci --no-increment -VV
@@ -784,7 +784,7 @@ steps:
       - mvn versions:update-parent -DallowSnapshots=true
 
       # Generate changelog and commit
-      - pnpm install && git config --unset core.hooksPath
+      - pnpm install --frozen-lockfile --ignore-scripts && git config --unset core.hooksPath
       - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json
       - git fetch --tags
       - release-it --ci --no-increment -VV

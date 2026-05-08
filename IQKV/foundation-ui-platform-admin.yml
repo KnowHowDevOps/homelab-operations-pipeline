@@ -64,7 +64,7 @@ steps:
         from_secret: NEXUS_NPM_EMAIL
     commands:
       # - yamllint .
-      - pnpm install && pnpm formatter:check # Install dependencies and verify code formatting
+      - pnpm install --frozen-lockfile --ignore-scripts && pnpm formatter:check # Install dependencies and verify code formatting
       - pnpm ci:lint # Run ESLint for code quality checks
       - pnpm test:coverage # Execute unit tests with coverage reporting
       - npx @sonar/scan # Perform SonarQube static code analysis

@@ -76,7 +76,7 @@ steps:
       - javac -version # Display Java compiler version
       - mvn -version # Display Maven version
       # - yamllint .
-      - pnpm install && pnpm lint # Install dependencies and run frontend linting
+      - pnpm install --frozen-lockfile --ignore-scripts && pnpm lint # Install dependencies and run frontend linting
       - mvn dependency:resolve -U  -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Resolve and update dependencies
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD # Run tests and verify build
 
@@ -252,7 +252,7 @@ steps:
         from_secret: GITHUB_API_ACCESS_TOKEN
     commands:
       - git checkout -b release # Create temporary release branch
-      - pnpm install && git config --unset core.hooksPath # Install dependencies and disable git hooks
+      - pnpm install --frozen-lockfile --ignore-scripts && git config --unset core.hooksPath # Install dependencies and disable git hooks
       - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/release.json # Download release configuration
       - git fetch --tags # Ensure all tags are available
       - release-it --ci --no-increment -VV # Generate release with verbose output
@@ -689,7 +689,7 @@ steps:
       - mvn versions:update-parent -DallowSnapshots=true # Allow SNAPSHOT parent versions
 
       # Generate changelog and commit
-      - pnpm install && git config --unset core.hooksPath
+      - pnpm install --frozen-lockfile --ignore-scripts && git config --unset core.hooksPath
       - wget -O ./.release-it.json https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/release-it/changelog.json # Download changelog configuration
       - git fetch --tags # Ensure all tags are available
       - release-it --ci --no-increment -VV # Generate changelog with verbose output

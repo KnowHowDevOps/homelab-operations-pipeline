@@ -31,7 +31,7 @@ steps:
         from_secret: NEXUS_NPM_EMAIL
     commands:
       # - yamllint .
-      - pnpm install && pnpm formatter:check
+      - pnpm install --frozen-lockfile --ignore-scripts && pnpm formatter:check
       - pnpm ci:lint
       - npx @sonar/scan
       - pnpm build
