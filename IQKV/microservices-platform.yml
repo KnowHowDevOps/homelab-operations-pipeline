@@ -74,7 +74,7 @@ steps:
       - javac -version
       - mvn -version
       # - yamllint .
-      - pnpm install # Frontend linting here
+      - pnpm install --frozen-lockfile --ignore-scripts # Frontend linting here
       - mvn clean verify -Dstyle.color=always -Dmaven.javadoc.skip=true -s ../maven-settings.xml -Ddeployer.username=$NEXUS_DEPLOYER_USERNAME -Ddeployer.password=$NEXUS_DEPLOYER_PASSWORD
 
   # --------------------------------------------------------------------------

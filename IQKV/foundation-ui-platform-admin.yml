@@ -257,7 +257,7 @@ steps:
       - name: pnpm-store
         path: /root/.pnpm-store
     commands:
-      - pnpm install # Install dependencies
+      - pnpm install --frozen-lockfile --ignore-scripts # Install dependencies
       - pnpm build # Build production artifacts
       - ls -la ./dist/
 
