@@ -34,7 +34,7 @@ steps:
       NEXUS_DEPLOYER_PASSWORD:
         from_secret: NEXUS_DEPLOYER_PASSWORD
     commands:
-      - pnpm install # Install dependencies
+      - pnpm install --frozen-lockfile --ignore-scripts # Install dependencies
       - pnpm formatter:check # Verify code formatting
 
 ---
@@ -82,7 +82,7 @@ steps:
     image: cicdtools/pipeline-runner
     pull: if-not-exists
     commands:
-      - pnpm install # Install dependencies
+      - pnpm install --frozen-lockfile --ignore-scripts # Install dependencies
       - pnpm docs:build # Build VitePress docs
 
   # Step 3: Build and push Docker container image
