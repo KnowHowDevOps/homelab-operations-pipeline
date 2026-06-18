@@ -1,0 +1,186 @@
+# ============================================================================
+# Pipeline 1: VerifyCode
+# Validates code quality and formatting before building artifacts
+# ============================================================================
+
+kind: pipeline
+name: VerifyCode
+type: docker
+
+# Trigger: Runs on every push and tag creation
+trigger:
+  event:
+    - push
+    - tag
+
+# Shared volume for pnpm package cache to speed up builds
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
+
+steps:
+  # Step 1: Verify code formatting and quality
+  - name: verify
+    image: cicdtools/pipeline-runner
+    pull: if-not-exists
+    volumes:
+      - name: pnpm-store
+        path: /root/.pnpm-store
+    environment:
+      # Nexus credentials for private package registry access
+      NEXUS_DEPLOYER_USERNAME:
+        from_secret: NEXUS_DEPLOYER_USERNAME
+      NEXUS_DEPLOYER_PASSWORD:
+        from_secret: NEXUS_DEPLOYER_PASSWORD
+    commands:
+      - pnpm install # Install dependencies
+      - pnpm formatter:check # Verify code formatting
+
+---
+# ============================================================================
+# Pipeline 2: PublishArtifacts
+# Builds documentation and creates Docker container image
+# Only runs on specific branches (dev, prerelease, maintenance, tags)
+# ============================================================================
+
+kind: pipeline
+name: PublishArtifacts
+type: docker
+
+# Trigger: Only runs on specific branches and tags
+trigger:
+  event:
+    - push
+    - tag
+  ref:
+    - refs/heads/dev # Development branch
+    - refs/heads/prerelease/* # Prerelease branches
+    - refs/heads/*.*.x # Maintenance branches (e.g., 1.0.x)
+    - refs/tags/* # All tags
+
+# Dependency: Waits for code verification to pass
+depends_on:
+  - VerifyCode
+
+# Shared volume for pnpm package cache
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
+
+steps:
+  # Step 1: Download Nginx Dockerfile from operations repository
+  - name: download-dockerfile
+    image: cicdtools/pipeline-runner
+    pull: if-not-exists
+    commands:
+      - wget -O ./Dockerfile https://raw.githubusercontent.com/KnowHowDevOps/homelab-operations-pipeline/dev/resources/Nginx.dockerfile
+
+  # Step 2: Build VitePress documentation
+  - name: build-docs
+    image: cicdtools/pipeline-runner
+    pull: if-not-exists
+    commands:
+      - pnpm install # Install dependencies
+      - pnpm docs:build # Build VitePress docs
+
+  # Step 3: Build and push Docker container image
+  - name: build-container
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./
+      storage_driver: vfs
+      username:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      password:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
+      registry: know-how.download
+      force_tag: true
+      build_args:
+        - BASE_IMAGE=know-how.download/library/nginx-runner
+        - VCS_REFERENCE=${DRONE_COMMIT} # Git commit hash
+        - SOURCE_DIR=./docs/.vitepress/dist # Built docs directory
+      tags:
+        - latest # Tag image as latest
+
+---
+# ============================================================================
+# Pipeline 3: DeployOnProduction
+# Deploys the built container to production environment using Helm
+# Sends Slack notification on completion
+# ============================================================================
+
+kind: pipeline
+name: DeployOnProduction
+type: docker
+
+# Trigger: Only runs on specific branches and tags
+trigger:
+  event:
+    - push
+    - tag
+  ref:
+    - refs/heads/dev # Development branch
+    - refs/heads/prerelease/* # Prerelease branches
+    - refs/heads/*.*.x # Maintenance branches
+    - refs/tags/* # All tags
+
+# Dependency: Waits for artifacts to be published
+depends_on:
+  - PublishArtifacts
+
+# Shared volume for pnpm package cache
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
+
+steps:
+  # Step 1: Deploy to production environment using Helm
+  - name: deploy
+    image: cicdtools/pipeline-runner
+    pull: never
+    environment:
+      # Helm charts repository and container registry credentials
+      HELM_CHARTS_REPOSITORY:
+        from_secret: HELM_CHARTS_REPOSITORY
+      SVC_CONTAINER_REGISTRY_USERNAME:
+        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+      SVC_CONTAINER_REGISTRY_PASSWORD:
+        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
+    commands:
+      # Clone Helm charts and navigate to service directory
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      # Verify kubectl connectivity
+      - kubectl version --output=yaml
+      # Uninstall existing release if present
+      - helm uninstall -n default --ignore-not-found ${DRONE_REPO_NAME}
+      # Preview Helm template with production values
+      - helm template ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-production.yaml --set image.tag=latest -n default
+      # Deploy to production with atomic rollback on failure
+      - helm upgrade --install --atomic --wait --timeout 2m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./values-production.yaml --set image.tag=latest -n default
+
+  # Step 2: Send deployment notification to Slack
+  - name: notify-slack
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: SLACK_WEBHOOK
+      channel: dev
+      # Template: Shows success/failure with commit message and author
+      template: >
+        {{#success build.status}}
+         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
+         {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{else}}
+         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{/success}}
+    when:
+      status:
+        - failure
+        - success
+    depends_on:
+      - deploy
