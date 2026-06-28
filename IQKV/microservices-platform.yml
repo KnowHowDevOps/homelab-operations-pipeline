@@ -368,11 +368,11 @@ steps:
       context: ./foundation-iam-service/
       storage_driver: vfs
       username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-iam-service
-      registry: know-how.download
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-iam-service
+      # registry: know-how.download
       force_tag: true
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner
@@ -396,11 +396,11 @@ steps:
       context: ./foundation-billing-service/
       storage_driver: vfs
       username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-billing-service
-      registry: know-how.download
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-billing-service
+      # registry: know-how.download
       force_tag: true
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner
@@ -425,11 +425,11 @@ steps:
       context: ./foundation-gateway-service/
       storage_driver: vfs
       username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-gateway-service
-      registry: know-how.download
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-gateway-service
+      # registry: know-how.download
       force_tag: true
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner
@@ -462,11 +462,11 @@ steps:
       context: ./foundation-iam-service/
       storage_driver: vfs
       username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-iam-service
-      registry: know-how.download
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-iam-service
+      # registry: know-how.download
       force_tag: true
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner
@@ -489,11 +489,11 @@ steps:
       context: ./foundation-billing-service/
       storage_driver: vfs
       username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-billing-service
-      registry: know-how.download
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-billing-service
+      # registry: know-how.download
       force_tag: true
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner
@@ -517,11 +517,11 @@ steps:
       context: ./foundation-gateway-service/
       storage_driver: vfs
       username:
-        from_secret: SVC_CONTAINER_REGISTRY_USERNAME
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
-        from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-gateway-service
-      registry: know-how.download
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}/foundation-gateway-service
+      # registry: know-how.download
       force_tag: true
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner
