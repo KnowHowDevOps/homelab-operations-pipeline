@@ -2,7 +2,7 @@
 # Use this for services where layer extraction fails
 # Simpler and more reliable, but less optimal caching
 
-ARG BASE_IMAGE='know-how.download/library/jre-runner-alpine'
+ARG BASE_IMAGE='cicdtools/jre-runner-alpine'
 
 FROM ${BASE_IMAGE}
 

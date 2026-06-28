@@ -1,5 +1,5 @@
 # base_image_name is expected to be overridden
-ARG BASE_IMAGE='know-how.download/library/jre-runner'
+ARG BASE_IMAGE='cicdtools/jre-runner'
 
 FROM $BASE_IMAGE
 

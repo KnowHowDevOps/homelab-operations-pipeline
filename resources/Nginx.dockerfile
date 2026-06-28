@@ -1,5 +1,5 @@
 # base_image_name is expected to be overridden
-ARG BASE_IMAGE='know-how.download/library/nginx-runner'
+ARG BASE_IMAGE='cicdtools/nginx-runner'
 
 FROM $BASE_IMAGE
 

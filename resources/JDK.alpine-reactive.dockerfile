@@ -3,7 +3,7 @@
 # For MVC/Servlet apps, use JDK.alpine.dockerfile instead
 
 # Stage 1: Extract JAR layers
-ARG BASE_IMAGE='know-how.download/library/jre-runner-alpine'
+ARG BASE_IMAGE='cicdtools/jre-runner-alpine'
 
 FROM ${BASE_IMAGE} AS extractor
 

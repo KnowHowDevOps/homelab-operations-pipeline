@@ -375,7 +375,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:8} # Strips 'feature/' prefix
@@ -403,7 +403,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
         - EXPOSE_PORT=8080
       tags:
@@ -432,7 +432,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
         - EXPOSE_PORT=8080
       tags:
@@ -469,7 +469,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG} # Version tag (e.g., 1.0.0)
@@ -496,7 +496,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
         - EXPOSE_PORT=8080
       tags:
@@ -524,7 +524,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
         - EXPOSE_PORT=8080
       tags:

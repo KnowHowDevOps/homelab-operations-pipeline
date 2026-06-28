@@ -3,7 +3,7 @@
 # Automatically handles layer extraction failures gracefully
 
 # Stage 1: Extract JAR layers with fallback
-ARG BASE_IMAGE='know-how.download/library/jre-runner-alpine'
+ARG BASE_IMAGE='cicdtools/jre-runner-alpine'
 
 FROM ${BASE_IMAGE} AS extractor
 

@@ -8,8 +8,8 @@
 # ---------------------------------------------------------------------------
 # Build args – override any of these from the pipeline
 # ---------------------------------------------------------------------------
-ARG BASE_IMAGE='know-how.download/library/nodejs-runner'
-ARG NGINX_IMAGE='know-how.download/library/nginx-runner'
+ARG BASE_IMAGE='cicdtools/nodejs-runner'
+ARG NGINX_IMAGE='cicdtools/nginx-runner'
 
 # Package manager command used to install dependencies
 ARG PKG_MANAGER='pnpm'

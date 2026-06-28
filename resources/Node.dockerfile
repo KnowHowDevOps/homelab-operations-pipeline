@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------------------
 # Build args – override any of these from the pipeline
 # ---------------------------------------------------------------------------
-ARG BASE_IMAGE='know-how.download/library/nodejs-runner'
+ARG BASE_IMAGE='cicdtools/nodejs-runner'
 
 # Package manager command used to install dependencies
 ARG PKG_MANAGER='pnpm'

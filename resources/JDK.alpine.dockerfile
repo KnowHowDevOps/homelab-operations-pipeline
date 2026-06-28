@@ -1,6 +1,6 @@
 # Optimized multi-stage Dockerfile for Spring Boot applications
 # Stage 1: Extract JAR layers
-ARG BASE_IMAGE='know-how.download/library/jre-runner'
+ARG BASE_IMAGE='cicdtools/jre-runner'
 
 FROM ${BASE_IMAGE} AS extractor
 

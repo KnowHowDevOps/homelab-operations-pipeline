@@ -272,7 +272,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -297,7 +297,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -322,7 +322,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -347,7 +347,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -372,7 +372,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -397,7 +397,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH:22}-${CI_BUILD_NUMBER}
@@ -422,7 +422,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -447,7 +447,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -472,7 +472,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -497,7 +497,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -522,7 +522,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
@@ -547,7 +547,7 @@ steps:
       registry: know-how.download
       force_tag: true
       build_args:
-        - BASE_IMAGE=know-how.download/library/jre-runner
+        - BASE_IMAGE=cicdtools/jre-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_TAG}
