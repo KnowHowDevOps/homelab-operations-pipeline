@@ -261,8 +261,8 @@ steps:
         from_secret: SVC_CONTAINER_REGISTRY_USERNAME
       password:
         from_secret: SVC_CONTAINER_REGISTRY_PASSWORD
-      repo: know-how.download/${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
-      registry: know-how.download
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
+      # registry: know-how.download
       force_tag: true
       build_args:
         - BASE_IMAGE=cicdtools/nodejs-runner
