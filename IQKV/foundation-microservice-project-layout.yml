@@ -294,11 +294,10 @@ steps:
   - name: build-wip-container
     depends_on:
       - package-jar
-    image: plugins/docker
+    image: plugins/kaniko
     settings:
       dockerfile: ./Dockerfile
       context: ./
-      storage_driver: vfs
       username:
         from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
@@ -306,6 +305,8 @@ steps:
       repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
       # registry: know-how.download
       force_tag: true
+      cache: true
+      cache_repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
@@ -324,11 +325,10 @@ steps:
   - name: build-container-with-feature
     depends_on:
       - package-jar
-    image: plugins/docker
+    image: plugins/kaniko
     settings:
       dockerfile: ./Dockerfile
       context: ./
-      storage_driver: vfs
       username:
         from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
@@ -336,6 +336,8 @@ steps:
       repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
       # registry: know-how.download
       force_tag: true
+      cache: true
+      cache_repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
@@ -352,11 +354,10 @@ steps:
   - name: build-container-release
     depends_on:
       - package-jar
-    image: plugins/docker
+    image: plugins/kaniko
     settings:
       dockerfile: ./Dockerfile
       context: ./
-      storage_driver: vfs
       username:
         from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
       password:
@@ -364,6 +365,8 @@ steps:
       repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
       # registry: know-how.download
       force_tag: true
+      cache: true
+      cache_repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
