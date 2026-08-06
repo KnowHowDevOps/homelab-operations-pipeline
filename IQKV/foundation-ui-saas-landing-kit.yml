@@ -64,6 +64,7 @@ steps:
         from_secret: NEXUS_NPM_EMAIL
     commands:
       # - yamllint .
+      - npm config set registry https://registry.npmjs.org/
       - pnpm install --frozen-lockfile --ignore-scripts && pnpm formatter:check # Install dependencies and verify code formatting
       - npx @sonar/scan || true # Perform SonarQube static code analysis
       - pnpm build # Build application to verify compilation
@@ -255,6 +256,7 @@ steps:
       - name: pnpm-store
         path: /root/.pnpm-store
     commands:
+      - npm config set registry https://registry.npmjs.org/
       - pnpm install --frozen-lockfile --ignore-scripts # Install dependencies
       - pnpm build # Build production artifacts
       - ls -la ./dist/

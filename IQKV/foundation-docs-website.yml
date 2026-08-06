@@ -62,6 +62,7 @@ steps:
         from_secret: NEXUS_NPM_EMAIL
     commands:
       # - yamllint .
+      - npm config set registry https://registry.npmjs.org/
       - pnpm install --frozen-lockfile --ignore-scripts && pnpm formatter:check # Install dependencies and verify code formatting
       - pnpm ci:lint # Run lint for code quality checks
       - pnpm ci:test # Build documentation to verify compilation
@@ -253,6 +254,7 @@ steps:
       - name: pnpm-store
         path: /root/.pnpm-store
     commands:
+      - npm config set registry https://registry.npmjs.org/
       - pnpm install --frozen-lockfile --ignore-scripts # Install dependencies
       - pnpm docs:build # Build production documentation artifacts
       - ls -la ./docs/.vitepress/dist/
