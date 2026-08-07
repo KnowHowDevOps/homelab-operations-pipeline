@@ -570,7 +570,7 @@ steps:
       - git submodule update --init --recursive --remote
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqkv-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_BRANCH:8} -n iqkv-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification
@@ -664,7 +664,7 @@ steps:
       - git submodule update --init --recursive --remote
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
-      - helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqkv-${DRONE_DEPLOY_TO}-env
+      - helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ --values ./values.yaml --values ./${DRONE_DEPLOY_TO}-values.yaml --set image.tag=${DRONE_TAG} -n iqkv-${DRONE_DEPLOY_TO}-env
 
   # --------------------------------------------------------------------------
   # Slack Notification

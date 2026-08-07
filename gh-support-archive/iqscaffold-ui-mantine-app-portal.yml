@@ -306,7 +306,7 @@ steps:
       - kubectl version --output=yaml
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true # Uninstall deployment
       - |
-        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \

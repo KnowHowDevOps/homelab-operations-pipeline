@@ -419,7 +419,7 @@ steps:
       - kubectl config use-context hst
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true
       - |
-        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \
@@ -514,7 +514,7 @@ steps:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - |
-        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
@@ -607,7 +607,7 @@ steps:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
       - |
-        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \

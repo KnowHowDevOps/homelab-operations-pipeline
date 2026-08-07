@@ -492,7 +492,7 @@ steps:
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true # Uninstall deployment
       - |
         # Deploy with connection parameters from infra secrets
-        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-sit.yaml \
           --set image.tag=${DRONE_BRANCH} \
@@ -626,7 +626,7 @@ steps:
       - kubectl version --output=yaml # Display Kubernetes version
       - |
         # Deploy with connection parameters from infra secrets
-        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_BRANCH:8} \
@@ -763,7 +763,7 @@ steps:
       - kubectl version --output=yaml # Display Kubernetes version
       - |
         # Deploy with connection parameters from infra secrets
-        helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
           --values ./values.yaml \
           --values ./values-${DRONE_DEPLOY_TO}.yaml \
           --set image.tag=${DRONE_TAG} \
