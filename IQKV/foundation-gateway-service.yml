@@ -378,6 +378,7 @@ steps:
     commands:
       - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
       - kubectl version --output=yaml
+      - kubectl config use-context hst
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true
       - |
         helm upgrade --install --atomic --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
@@ -431,6 +432,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - kubectl config use-context hst
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env
 
 ---
@@ -510,6 +512,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - kubectl config use-context hst
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
@@ -591,6 +594,7 @@ steps:
         from_secret: HELM_CHARTS_REPOSITORY
     commands:
       - git clone ${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - kubectl config use-context hst
       - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-${DRONE_DEPLOY_TO}-env
 
 ---
