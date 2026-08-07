@@ -273,7 +273,7 @@ steps:
   - name: build-wip-container
     depends_on:
       - package-jar
-    image: plugins/kaniko
+    image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
       context: ./
@@ -285,7 +285,7 @@ steps:
       # registry: know-how.download
       force_tag: true
       cache: true
-      cache_repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      storage_driver: vfs
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
@@ -294,7 +294,6 @@ steps:
       cache_from:
         - "${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}:${DRONE_BRANCH}"
       purge: true
-      compress: true
     when:
       branch:
         include:
@@ -303,7 +302,7 @@ steps:
   - name: build-container-with-feature
     depends_on:
       - package-jar
-    image: plugins/kaniko
+    image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
       context: ./
@@ -315,7 +314,9 @@ steps:
       # registry: know-how.download
       force_tag: true
       cache: true
-      cache_repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      cache_from:
+        - ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      storage_driver: vfs
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
@@ -329,7 +330,7 @@ steps:
   - name: build-container-release
     depends_on:
       - package-jar
-    image: plugins/kaniko
+    image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
       context: ./
@@ -341,7 +342,9 @@ steps:
       # registry: know-how.download
       force_tag: true
       cache: true
-      cache_repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      cache_from:
+        - ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      storage_driver: vfs
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}

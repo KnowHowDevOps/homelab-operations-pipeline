@@ -270,7 +270,7 @@ steps:
   # Image naming: know-how.download/{owner}/{repo}:{branch}
   # --------------------------------------------------------------------------
   - name: build-container
-    image: plugins/kaniko
+    image: plugins/docker
     settings:
       dockerfile: ./Dockerfile
       context: ./
@@ -282,7 +282,9 @@ steps:
       # registry: know-how.download
       force_tag: true
       cache: true
-      cache_repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      cache_from:
+        - ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      storage_driver: vfs
       build_args:
         - BASE_IMAGE=cicdtools/nginx-runner
         - VCS_REFERENCE=${DRONE_COMMIT}
