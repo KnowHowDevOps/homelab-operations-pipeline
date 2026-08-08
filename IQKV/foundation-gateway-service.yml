@@ -285,14 +285,15 @@ steps:
       # registry: know-how.download
       force_tag: true
       cache: true
+      cache_from:
+        - ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+        - "${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}:${DRONE_BRANCH}"
       storage_driver: vfs
       build_args:
         - BASE_IMAGE=cicdtools/jre-runner-alpine
         - VCS_REFERENCE=${DRONE_COMMIT}
       tags:
         - ${DRONE_BRANCH}
-      cache_from:
-        - "${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}:${DRONE_BRANCH}"
       purge: true
     when:
       branch:
