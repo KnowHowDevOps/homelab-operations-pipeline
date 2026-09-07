@@ -1,0 +1,59 @@
+# =====================================================================================
+# Drone CI/CD Pipeline — VPS
+# =====================================================================================
+# Pipeline Flow:
+#   1. build-container — multi-stage docker build (Maven inside), tags image :wip, no push
+#   2. deploy          — docker compose restarts cloud-vps-20-audit-service
+# =====================================================================================
+
+# ============================================================================
+# Pipeline 1: BuildImage
+# ============================================================================
+# Builds the Spring Boot JAR inside a multi-stage Docker build (no host Maven needed),
+# packages it into a JRE runtime image, and restarts the service in the VPS stack.
+# Triggers: Push to dev branch only
+# ============================================================================
+kind: pipeline
+name: BuildImage
+type: docker
+
+trigger:
+  event:
+    - push
+  branch:
+    - dev
+
+node:
+  environment: demoops
+
+steps:
+  # --------------------------------------------------------------------------
+  # Step 1: Build Container Image
+  # --------------------------------------------------------------------------
+  # Multi-stage build: stage 1 runs Maven inside eclipse-temurin:25-jdk-alpine,
+  # stage 2 copies extracted layers into a lean JRE runtime image.
+  # Tagged :wip. Builds directly via the host Docker socket — no push.
+  # Socket and /app are injected by DRONE_RUNNER_VOLUMES on the runner.
+  # --------------------------------------------------------------------------
+  - name: build-container
+    image: docker:cli
+    commands:
+      - docker build
+          -f Dockerfile
+          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+          -t iqkv/foundation-audit-service:wip
+          .
+
+  # --------------------------------------------------------------------------
+  # Step 2: Deploy — restart service via Compose
+  # --------------------------------------------------------------------------
+  # Recreates the container from the freshly built :wip image.
+  # Socket and /app are injected by DRONE_RUNNER_VOLUMES on the runner.
+  # --------------------------------------------------------------------------
+  - name: deploy
+    image: docker:cli
+    depends_on:
+      - build-container
+    commands:
+      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-audit-service
