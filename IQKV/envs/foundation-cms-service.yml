@@ -44,11 +44,11 @@ steps:
     image: docker:cli
     commands:
       - docker build
-          -f Dockerfile
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          -t iqkv/foundation-cms-service:wip
-          .
+        -f Dockerfile
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        -t iqkv/foundation-cms-service:wip
+        .
 
   # --------------------------------------------------------------------------
   # Step 2: Deploy — restart service via Compose
@@ -108,12 +108,12 @@ steps:
     image: docker:cli
     commands:
       - docker build
-          -f Dockerfile.native
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          --progress=plain
-          -t iqkv/foundation-cms-service:native
-          .
+        -f Dockerfile.native
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        --progress=plain
+        -t iqkv/foundation-cms-service:native
+        .
 
   # --------------------------------------------------------------------------
   # Step 2: Smoke test — verify the binary starts up
@@ -187,11 +187,11 @@ steps:
     image: docker:cli
     commands:
       - docker build
-          -f Dockerfile
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          -t iqkv/foundation-cms-service:latest
-          .
+        -f Dockerfile
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        -t iqkv/foundation-cms-service:latest
+        .
 
   - name: deploy
     image: docker:cli
@@ -225,12 +225,12 @@ steps:
     image: docker:cli
     commands:
       - docker build
-          -f Dockerfile.native
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          --progress=plain
-          -t iqkv/foundation-cms-service:native
-          .
+        -f Dockerfile.native
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        --progress=plain
+        -t iqkv/foundation-cms-service:native
+        .
 
   - name: smoke-test
     image: docker:cli

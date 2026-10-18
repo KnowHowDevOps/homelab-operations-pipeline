@@ -68,12 +68,12 @@ steps:
       - build-application
     commands:
       - docker build
-          -f Dockerfile
-          --build-arg BASE_IMAGE=nginx:1.27-alpine
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          -t iqkv/foundation-docs-website:wip
-          .
+        -f Dockerfile
+        --build-arg BASE_IMAGE=nginx:1.27-alpine
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        -t iqkv/foundation-docs-website:wip
+        .
 
   # --------------------------------------------------------------------------
   # Step 3: Deploy — restart service via Compose
@@ -133,12 +133,12 @@ steps:
       - build-application
     commands:
       - docker build
-          -f Dockerfile
-          --build-arg BASE_IMAGE=nginx:1.27-alpine
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          -t iqkv/foundation-docs-website:latest
-          .
+        -f Dockerfile
+        --build-arg BASE_IMAGE=nginx:1.27-alpine
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        -t iqkv/foundation-docs-website:latest
+        .
 
   - name: deploy
     image: docker:cli

@@ -39,11 +39,11 @@ steps:
     image: docker:cli
     commands:
       - docker build
-          -f Dockerfile
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          -t iqkv/foundation-iam-service:wip
-          .
+        -f Dockerfile
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        -t iqkv/foundation-iam-service:wip
+        .
 
   # --------------------------------------------------------------------------
   # Step 2: Deploy — restart service via Compose
@@ -83,11 +83,11 @@ steps:
     image: docker:cli
     commands:
       - docker build
-          -f Dockerfile
-          --build-arg VCS_REFERENCE=${DRONE_COMMIT}
-          --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-          -t iqkv/foundation-iam-service:latest
-          .
+        -f Dockerfile
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        -t iqkv/foundation-iam-service:latest
+        .
 
   - name: deploy
     image: docker:cli
