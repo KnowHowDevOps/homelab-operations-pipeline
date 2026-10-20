@@ -26,7 +26,7 @@ steps:
         -f Dockerfile
         --build-arg VCS_REFERENCE=${DRONE_COMMIT}
         --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
-        -t iqkv/docintelligence-catalog-service:latest
+        -t iqkv/docintelligence-catalog-processing-worker:latest
         .
 
   - name: deploy
@@ -34,4 +34,4 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-catalog-service
+      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-catalog-processing-worker
