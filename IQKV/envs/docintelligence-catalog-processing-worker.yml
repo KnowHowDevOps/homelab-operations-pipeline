@@ -1,0 +1,37 @@
+
+# ============================================================================
+# Pipeline: BuildImageShortlisty
+# ============================================================================
+# Same flow as BuildImage but targets the VDS Shortlisty stack.
+# Triggers: Push to dev branch only
+# ============================================================================
+kind: pipeline
+name: BuildImageShortlisty
+type: docker
+
+trigger:
+  event:
+    - push
+  branch:
+    - dev
+
+node:
+  environment: shortlisty
+
+steps:
+  - name: build-container
+    image: docker:cli
+    commands:
+      - docker build
+        -f Dockerfile
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        -t iqkv/docintelligence-catalog-service:latest
+        .
+
+  - name: deploy
+    image: docker:cli
+    depends_on:
+      - build-container
+    commands:
+      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-catalog-service
