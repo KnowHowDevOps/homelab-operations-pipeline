@@ -1,0 +1,325 @@
+# =====================================================================================
+# Tagvenue Scraper - Drone CI/CD Pipeline
+# =====================================================================================
+# Batch CLI scraper packaged as a container image. The image is the only artifact:
+# the package is private (no npm publish) and the container is a run-to-completion
+# job (no HTTP port), so it is scheduled rather than kept alive.
+#
+# Pipeline Flow:
+#   1. VerifyCode                  - Formatting, lint, typecheck, unit tests, SonarQube
+#   2. PublishDockerImage          - Container images to registry
+#   3. DeployWorkInProgress        - Wip branch deployments to dev environment
+#   4. RollbackWorkInProgress      - Rollback wip deployments
+#
+# The image is built from the repository's own multi-stage Dockerfile — no template
+# is downloaded, and no application build step is required before it (the Dockerfile
+# runs "pnpm install --prod --frozen-lockfile" in its deps stage).
+# ======================================================================================
+
+# ============================================================================
+# Pipeline 1: VerifyCode
+# ============================================================================
+# Validates code quality, runs tests, and performs static analysis
+# Triggers: Push to all branches and tags for comprehensive quality checks
+# Quality Gates:
+#   - Code formatting
+#   - Linting
+#   - Type checking (JSDoc via jsconfig.json)
+#   - Unit tests
+#   - SonarQube static analysis
+# ============================================================================
+kind: pipeline
+name: VerifyCode
+type: docker
+
+trigger:
+  event:
+    - push
+    - tag
+
+# Persistent volumes for dependency caching
+volumes:
+  - name: pnpm-store
+    host:
+      path: /app/.pnpm-store
+
+steps:
+  # --------------------------------------------------------------------------
+  # Step 1: Code Quality Gate
+  # --------------------------------------------------------------------------
+  # Comprehensive quality checks including formatting, linting, type checking,
+  # testing, and static analysis. There is no "pnpm build" script: the runnable
+  # artifact is the container image produced in the next pipeline.
+  # Uses pnpm for faster dependency resolution and caching.
+  # --------------------------------------------------------------------------
+  - name: verify
+    image: cicdtools/pipeline-runner
+    pull: never
+    volumes:
+      - name: pnpm-store
+        path: /root/.pnpm-store
+    environment:
+      # SonarQube configuration for code quality analysis
+      SONAR_HOST_URL:
+        from_secret: SONAR_HOST_URL
+      SONAR_TOKEN:
+        from_secret: SONAR_TOKEN
+    commands:
+      - npm config set registry https://registry.npmjs.org/
+      - pnpm install --frozen-lockfile --ignore-scripts && pnpm formatter:check # Install dependencies and verify code formatting
+      - pnpm lint # Run oxlint for code quality checks
+      - pnpm typecheck # Type-check JSDoc annotations via tsc/jsconfig.json
+      - pnpm test # Execute unit tests for parser, extractor, and normalizer
+      - npx @sonar/scan || true # Perform SonarQube static code analysis
+
+  # --------------------------------------------------------------------------
+  # Step 2: Slack Notification (Failure Only)
+  # --------------------------------------------------------------------------
+  # Notifies team in Slack when verification fails
+  # Uses red circle and thunder cloud emoji for failure indication
+  # --------------------------------------------------------------------------
+  - name: notify-slack-on-failure
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: SLACK_WEBHOOK
+      channel: dev
+      template: >
+        :red_circle: :thunder_cloud_and_rain: {{build.link}} ({{build.branch}}) by {{build.author}}
+    when:
+      status:
+        - failure
+    depends_on:
+      - verify
+
+---
+# ============================================================================
+# Pipeline 2: PublishDockerImage
+# ============================================================================
+# Publishes the container image to the registry.
+# Replaces "PublishArtifacts" from the reference pipelines: this package is
+# private (npm publish does not apply), so the image is the publishable artifact.
+# Triggers: Push to wip, feature/* branches and tags
+# ============================================================================
+kind: pipeline
+name: PublishDockerImage
+type: docker
+
+trigger:
+  event:
+    - push
+    - tag
+  ref:
+    include:
+      - refs/heads/wip
+      - refs/heads/feature/*
+      - refs/tags/*
+
+depends_on:
+  - VerifyCode # Only runs if code verification passes
+
+steps:
+  # --------------------------------------------------------------------------
+  # Step 1: Build WIP Branch Docker Image
+  # --------------------------------------------------------------------------
+  # Image naming: {owner}/{repo}:{branch}
+  # INSTALL_PLAYWRIGHT=0 keeps the slim runtime stage (no browser). The
+  # final-browser target is built on demand, not by CI.
+  # --------------------------------------------------------------------------
+  - name: build-wip-container
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./
+      username:
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
+      password:
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
+      # registry: know-how.download
+      force_tag: true
+      cache: true
+      cache_from:
+        - ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      storage_driver: vfs
+      build_args:
+        - INSTALL_PLAYWRIGHT=0
+      tags:
+        - ${DRONE_BRANCH} # Use branch name as tag
+      purge: true
+      compress: true
+    when:
+      branch:
+        include:
+          - "wip"
+
+  # --------------------------------------------------------------------------
+  # Step 2: Build Feature Branch Docker Image
+  # --------------------------------------------------------------------------
+  - name: build-container-with-feature
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./
+      username:
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
+      password:
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
+      # registry: know-how.download
+      force_tag: true
+      cache: true
+      cache_from:
+        - ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      storage_driver: vfs
+      build_args:
+        - INSTALL_PLAYWRIGHT=0
+      tags:
+        - ${DRONE_BRANCH:8} # Strips 'feature/' prefix
+      purge: true
+      compress: true
+    when:
+      branch:
+        include:
+          - "feature/*"
+
+  # --------------------------------------------------------------------------
+  # Step 3: Build Release Docker Image
+  # --------------------------------------------------------------------------
+  - name: build-container-release
+    image: plugins/docker
+    settings:
+      dockerfile: ./Dockerfile
+      context: ./
+      username:
+        from_secret: SVC_DOCKER_HUB_PUSH_USERNAME
+      password:
+        from_secret: SVC_DOCKER_HUB_PUSH_PASSWORD
+      repo: ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}
+      # registry: know-how.download
+      force_tag: true
+      cache: true
+      cache_from:
+        - ${DRONE_REPO_OWNER,,}/${DRONE_REPO_NAME}-cache
+      storage_driver: vfs
+      build_args:
+        - INSTALL_PLAYWRIGHT=0
+      tags:
+        - ${DRONE_TAG}
+      purge: true
+      compress: true
+    when:
+      ref:
+        - "refs/tags/*"
+
+---
+# ============================================================================
+# Pipeline 3: DeployWorkInProgress
+# ============================================================================
+# Deploys the wip branch image to the dev environment using Helm.
+# Triggers: Push to wip branch only
+# Note: the scraper is a scheduled batch job, so the Helm chart is expected to
+# render a CronJob (image.tag selects the freshly published image) rather than a
+# long-running Deployment/Service.
+# ============================================================================
+kind: pipeline
+name: DeployWorkInProgress
+type: docker
+
+trigger:
+  event:
+    - push
+    - tag
+  ref:
+    - refs/heads/wip
+
+depends_on:
+  - PublishDockerImage # Ensures the image is published first
+
+steps:
+  # --------------------------------------------------------------------------
+  # Step 1: Deploy to SIT Environment
+  # --------------------------------------------------------------------------
+  # Uses Helm for atomic deployment with automatic rollback on failure
+  # Deploys to iqkv-sit-env namespace with dev-specific configuration
+  # --------------------------------------------------------------------------
+  - name: deploy
+    image: cicdtools/pipeline-runner
+    pull: never
+    environment:
+      HELM_CHARTS_REPOSITORY:
+        from_secret: HELM_CHARTS_REPOSITORY
+    commands:
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME}
+      - kubectl version --output=yaml
+      - kubectl config use-context hst
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env || true # Uninstall deployment
+      - |
+        helm upgrade --install --rollback-on-failure --wait --timeout 5m ${DRONE_REPO_NAME} ./ \
+          --values ./values.yaml \
+          --values ./values-sit.yaml \
+          --set image.tag=${DRONE_BRANCH} \
+          --namespace iqkv-sit-env \
+          --create-namespace
+
+  # --------------------------------------------------------------------------
+  # Step 2: Slack Notification
+  # --------------------------------------------------------------------------
+  # Notifies team of deployment success/failure with appropriate emojis
+  # --------------------------------------------------------------------------
+  - name: notify-slack
+    image: plugins/slack
+    settings:
+      webhook:
+        from_secret: SLACK_WEBHOOK
+      channel: dev
+      template: >
+        {{#success build.status}}
+         :large_green_circle: :ship: *${DRONE_COMMIT_MESSAGE}*
+         {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{else}}
+         :red_circle: :anchor: {{build.link}} ({{build.branch}}) by {{build.author}}
+        {{/success}}
+    when:
+      status:
+        - failure
+        - success
+    depends_on:
+      - deploy
+
+---
+# ============================================================================
+# Pipeline 4: RollbackWorkInProgress
+# ============================================================================
+# Rolls back wip branch deployment from SIT environment
+# Trigger: Manual rollback event with target=sit
+# Uses Helm uninstall to completely remove the deployment
+# ============================================================================
+kind: pipeline
+name: RollbackWorkInProgress
+type: docker
+
+trigger:
+  event:
+    - rollback # Manual trigger only
+  target:
+    - sit
+  ref:
+    - "refs/heads/wip"
+
+steps:
+  # --------------------------------------------------------------------------
+  # Rollback from SIT Environment
+  # --------------------------------------------------------------------------
+  # Uses Helm uninstall to completely remove the wip deployment
+  # --------------------------------------------------------------------------
+  - name: rollback
+    image: cicdtools/pipeline-runner
+    pull: never
+    environment:
+      HELM_CHARTS_REPOSITORY:
+        from_secret: HELM_CHARTS_REPOSITORY
+    commands:
+      - git clone $${HELM_CHARTS_REPOSITORY} charts && cd charts/${DRONE_REPO_OWNER}/${DRONE_REPO_NAME} # Clone Helm charts repository
+      - kubectl config use-context hst
+      - helm uninstall --wait --timeout 2m ${DRONE_REPO_NAME} -n iqkv-sit-env # Uninstall deployment

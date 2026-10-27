@@ -1,0 +1,42 @@
+
+# ============================================================================
+# Pipeline: BuildImageShortlisty
+# ============================================================================
+# Same flow as BuildImage but targets the VDS Shortlisty stack.
+# Triggers: Push to dev branch only
+#
+# The scraper is a run-to-completion batch job (no HTTP surface, output goes to
+# the /data volume), so the compose service it deploys is a scheduled/one-shot
+# container rather than a long-lived worker.
+# ============================================================================
+kind: pipeline
+name: BuildImageShortlisty
+type: docker
+
+trigger:
+  event:
+    - push
+  branch:
+    - dev
+
+node:
+  environment: shortlisty
+
+steps:
+  - name: build-container
+    image: docker:cli
+    commands:
+      - docker build
+        -f Dockerfile
+        --build-arg VCS_REFERENCE=${DRONE_COMMIT}
+        --build-arg BUILD_VERSION_REFERENCE=${DRONE_BRANCH}
+        --build-arg INSTALL_PLAYWRIGHT=0
+        -t iqkv/docintelligence-mc-ingest-tagvenue-scraper:latest
+        .
+
+  - name: deploy
+    image: docker:cli
+    depends_on:
+      - build-container
+    commands:
+      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-mc-ingest-tagvenue-scraper
