@@ -6,8 +6,9 @@
 # Triggers: Push to dev branch only
 #
 # The scraper is a run-to-completion batch job (no HTTP surface, output goes to
-# /data on the host), so the compose service it deploys is a scheduled/one-shot
-# container rather than a long-lived worker.
+# /data on the host). Scheduling is host-side from /etc/cron.d, which runs the
+# compose service with `docker compose run --rm`, so this pipeline only builds
+# and deploys the image — there is no Drone cron pipeline for it.
 # ============================================================================
 kind: pipeline
 name: BuildImageShortlisty
@@ -40,34 +41,3 @@ steps:
       - build-container
     commands:
       - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-mc-ingest-tagvenue-scraper
-
----
-# ============================================================================
-# Pipeline: ScheduledScrape
-# ============================================================================
-# Runs the scrape batch on the schedule registered in Drone (repository →
-# Settings → Cron Jobs, or the CLI command below). The job name here must match
-# the registered one, and the cron expression is 6-field and evaluated in UTC.
-# Reuses the image built by BuildImageShortlisty — cron runs do not rebuild.
-#
-#   drone cron add --branch dev IQKV/docintelligence-mc-ingest-tagvenue-scraper \
-#     tagvenue-nightly "0 30 2 * * *"
-# ============================================================================
-kind: pipeline
-name: ScheduledScrape
-type: docker
-
-trigger:
-  event:
-    - cron
-  cron:
-    - tagvenue-nightly
-
-node:
-  environment: shortlisty
-
-steps:
-  - name: scrape
-    image: docker:cli
-    commands:
-      - docker compose -f /app/compose.yaml -p app run --rm xeon-dual-mc-ingest-tagvenue-scraper
