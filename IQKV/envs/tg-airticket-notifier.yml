@@ -1,12 +1,12 @@
 
 # ============================================================================
-# Pipeline: BuildImage
+# Pipeline: BuildImageShortlisty
 # ============================================================================
-# Same flow as BuildImage but targets the VPS Demoops stack.
+# Same flow as BuildImage but targets the VDS Shortlisty stack.
 # Triggers: Push to dev branch only
 # ============================================================================
 kind: pipeline
-name: BuildImage
+name: BuildImageShortlisty
 type: docker
 
 trigger:
@@ -16,7 +16,7 @@ trigger:
     - dev
 
 node:
-  environment: demoops
+  environment: shortlisty
 
 steps:
   - name: build-container
@@ -34,4 +34,4 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-tg-airticket-notifier
+      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-tg-airticket-notifier
