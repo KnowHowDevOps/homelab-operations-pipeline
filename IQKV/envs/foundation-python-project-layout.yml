@@ -1,0 +1,58 @@
+# =====================================================================================
+# Drone CI/CD Pipeline — VPS
+# =====================================================================================
+# Pipeline Flow:
+#   1. build-container — multi-stage docker build (uv inside), tags image :wip, no push
+#   2. deploy          — docker compose restarts cloud-vps-20-foundation-python-project-layout
+# =====================================================================================
+
+# ============================================================================
+# Pipeline 1: BuildImage
+# ============================================================================
+# Builds the Python distribution inside a multi-stage Docker build (no host uv needed),
+# resolves the virtualenv into a lean Python runtime image, and restarts the service
+# in the VPS stack.
+# Triggers: Push to dev branch only
+# ============================================================================
+kind: pipeline
+name: BuildImage
+type: docker
+
+trigger:
+  event:
+    - push
+  branch:
+    - dev
+
+node:
+  environment: demoops
+
+steps:
+  # --------------------------------------------------------------------------
+  # Step 1: Build Container Image
+  # --------------------------------------------------------------------------
+  # Multi-stage build: stage 1 resolves dependencies with uv inside python:3.13-slim,
+  # stage 2 copies the virtualenv into a lean, non-root runtime image.
+  # Tagged :wip. Builds directly via the host Docker socket — no push.
+  # Socket and /app are injected by DRONE_RUNNER_VOLUMES on the runner.
+  # --------------------------------------------------------------------------
+  - name: build-container
+    image: docker:cli
+    commands:
+      - docker build
+          -f Dockerfile
+          -t iqkv/foundation-python-project-layout:wip
+          .
+
+  # --------------------------------------------------------------------------
+  # Step 2: Deploy — restart service via Compose
+  # --------------------------------------------------------------------------
+  # Recreates the container from the freshly built :wip image.
+  # Socket and /app are injected by DRONE_RUNNER_VOLUMES on the runner.
+  # --------------------------------------------------------------------------
+  - name: deploy
+    image: docker:cli
+    depends_on:
+      - build-container
+    commands:
+      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-foundation-python-project-layout
