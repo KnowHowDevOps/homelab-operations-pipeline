@@ -56,7 +56,7 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-iam-service
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build cloud-vps-20-iam-service
 
 ---
 # ============================================================================
@@ -94,4 +94,4 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-iam-service
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build xeon-dual-iam-service

@@ -34,4 +34,4 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-tg-airticket-notifier
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build xeon-dual-tg-airticket-notifier

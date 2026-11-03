@@ -61,7 +61,7 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-cms-service
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build cloud-vps-20-cms-service
 
 ---
 # ============================================================================
@@ -160,7 +160,7 @@ steps:
     depends_on:
       - smoke-test
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-cms-service
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build cloud-vps-20-cms-service
 
 ---
 # ============================================================================
@@ -198,7 +198,7 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-cms-service
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build xeon-dual-cms-service
 
 ---
 # ============================================================================
@@ -263,4 +263,4 @@ steps:
     depends_on:
       - smoke-test
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-cms-service
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build xeon-dual-cms-service

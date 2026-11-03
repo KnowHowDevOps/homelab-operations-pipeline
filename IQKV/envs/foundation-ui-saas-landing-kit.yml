@@ -86,7 +86,7 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-website-iqkv-site
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build cloud-vps-20-website-iqkv-site
 
 ---
 # ============================================================================
@@ -145,4 +145,4 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build xeon-dual-website-iqkv-site
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build xeon-dual-website-iqkv-site

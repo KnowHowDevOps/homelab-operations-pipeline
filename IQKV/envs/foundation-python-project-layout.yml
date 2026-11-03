@@ -55,4 +55,4 @@ steps:
     depends_on:
       - build-container
     commands:
-      - docker compose -f /app/compose.yaml -p app up -d --no-build cloud-vps-20-foundation-python-project-layout
+      - docker compose -f /app/compose.yaml -p app up -d --no-deps --no-build cloud-vps-20-foundation-python-project-layout
