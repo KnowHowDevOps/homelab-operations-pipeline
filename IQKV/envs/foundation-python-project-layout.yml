@@ -40,9 +40,9 @@ steps:
     image: docker:cli
     commands:
       - docker build
-          -f Dockerfile
-          -t iqkv/foundation-python-project-layout:wip
-          .
+        -f Dockerfile
+        -t iqkv/foundation-python-project-layout:wip
+        .
 
   # --------------------------------------------------------------------------
   # Step 2: Deploy — restart service via Compose
