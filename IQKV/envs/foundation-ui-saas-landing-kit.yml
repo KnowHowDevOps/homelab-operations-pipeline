@@ -114,7 +114,7 @@ volumes:
 
 steps:
   - name: build-application
-    image: node:22-alpine
+    image: node:24-alpine
     volumes:
       - name: pnpm-store
         path: /root/.pnpm-store
